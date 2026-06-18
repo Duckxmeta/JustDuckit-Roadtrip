@@ -17,15 +17,18 @@
   <style>
     /* Design Tokens */
     :root {
-      --bg-dark: #0f172a;
-      --bg-card: rgba(30, 41, 59, 0.7);
+      --bg-dark: #070a13;
+      --bg-card: rgba(15, 23, 42, 0.7);
+      --bg-input: rgba(7, 10, 19, 0.6);
       --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(168, 85, 247, 0.5);
+      
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       
-      --color-route-stop: #f59e0b;   /* Amber */
-      --color-request: #3b82f6;      /* Blue */
-      --color-support: #10b981;      /* Emerald */
+      --color-completed: #c084fc;   /* Light Purple */
+      --color-planned: #10b981;     /* Emerald Green */
+      --color-suggestion: #fbbf24;  /* Amber Yellow */
       
       --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -42,6 +45,9 @@
 
     body {
       background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.12) 0px, transparent 50%);
       color: var(--text-main);
       font-family: var(--font-body);
       min-height: 100vh;
@@ -51,12 +57,12 @@
       line-height: 1.5;
     }
 
-    /* Container & Layout */
+    /* Layout Container */
     .dashboard-container {
       width: 100%;
-      max-width: 1440px;
+      max-width: 1600px;
       margin: 0 auto;
-      padding: 1rem;
+      padding: 1.25rem;
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
@@ -65,26 +71,35 @@
 
     /* App Header */
     .app-header {
-      background: radial-gradient(100% 100% at 0% 0%, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%);
+      background: rgba(15, 23, 42, 0.55);
       border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 1.25rem 1.5rem;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+      border-radius: 20px;
+      padding: 1.25rem 2rem;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+    }
+
+    .header-info {
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
     }
 
-    .header-top {
+    .logo-container {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.85rem;
     }
 
     .logo-emoji {
-      font-size: 2rem;
+      font-size: 2.2rem;
       animation: waddle 2s infinite ease-in-out alternate;
       display: inline-block;
     }
@@ -96,9 +111,9 @@
 
     .app-header h1 {
       font-family: var(--font-heading);
-      font-size: 1.75rem;
+      font-size: 1.85rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #fff 30%, #f59e0b 100%);
+      background: linear-gradient(135deg, #fff 40%, var(--color-completed) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: -0.02em;
@@ -110,66 +125,281 @@
       font-weight: 400;
     }
 
-    /* Main Grid Layout */
-    .main-layout {
+    /* Header Controls */
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* Button System */
+    .btn {
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.7rem 1.25rem;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: var(--transition-smooth);
+      outline: none;
+      min-height: 48px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #b55fe6 0%, #8b5cf6 100%);
+      box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(15, 23, 42, 0.6);
+      border-color: var(--border-color);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    /* Creator Mode Toggle Button */
+    .btn-creator {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px dashed var(--color-completed);
+      color: var(--color-completed);
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.05);
+    }
+
+    .btn-creator:hover {
+      background: rgba(168, 85, 247, 0.08);
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.15);
+    }
+
+    .btn-creator.active {
+      background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+      color: #fff;
+      border-style: solid;
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+      animation: pulseGlow 2s infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 12px rgba(168, 85, 247, 0.3); }
+      100% { box-shadow: 0 0 24px rgba(236, 72, 153, 0.6); }
+    }
+
+    /* Main Content Layout Grid */
+    .main-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 1.25rem;
       flex-grow: 1;
     }
 
-    @media (min-width: 992px) {
-      .main-layout {
-        grid-template-columns: 350px 1fr;
+    @media (min-width: 1024px) {
+      .main-grid {
+        grid-template-columns: 1fr 400px;
       }
     }
 
-    /* Glass Sidebar Card */
+    /* Map Area Styles */
+    .map-wrapper {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      width: 100%;
+      height: 70vh; /* Mobile Height */
+    }
+
+    @media (min-width: 1024px) {
+      .map-wrapper {
+        height: 85vh; /* Desktop Height */
+      }
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+
+    /* Creator Mode Warning Banner Overlay */
+    .creator-banner {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--color-completed);
+      border-radius: 30px;
+      padding: 0.6rem 1.5rem;
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      0% { top: -20px; opacity: 0; }
+      100% { top: 15px; opacity: 1; }
+    }
+
+    .creator-banner .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-completed);
+      animation: waddle 0.8s infinite alternate;
+    }
+
+    /* Sidebar Area Styles */
     .sidebar {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.25rem;
+      overflow-y: auto;
     }
 
+    @media (min-width: 1024px) {
+      .sidebar {
+        max-height: 85vh;
+        padding-right: 0.25rem;
+      }
+      /* Custom Scrollbar for Sidebar */
+      .sidebar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .sidebar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+      }
+      .sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+    }
+
+    /* Card System */
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 16px;
+      border-radius: 20px;
       padding: 1.5rem;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
-      height: 100%;
     }
 
-    .card h3 {
+    .card-title {
       font-family: var(--font-heading);
       font-size: 1.25rem;
       font-weight: 700;
       letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     .card-desc {
       color: var(--text-muted);
       font-size: 0.85rem;
       margin-top: -0.75rem;
+      line-height: 1.4;
     }
 
-    /* Stop List Items */
-    .stops-list {
+    /* Form Systems */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-group input, 
+    .form-group textarea, 
+    .form-group select {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0.75rem;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      color: var(--text-main);
+      outline: none;
+      transition: var(--transition-smooth);
+      min-height: 48px;
+    }
+
+    .form-group textarea {
+      resize: none;
+      min-height: 80px;
+    }
+
+    .form-group input:focus, 
+    .form-group textarea:focus, 
+    .form-group select:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+    }
+
+    /* Location Pin List in Sidebar */
+    .pins-scroll-area {
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
+      max-height: 250px;
+      overflow-y: auto;
+      padding-right: 0.25rem;
     }
 
-    .stop-item {
-      background: rgba(15, 23, 42, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.04);
+    .pins-scroll-area::-webkit-scrollbar {
+      width: 4px;
+    }
+    .pins-scroll-area::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+    }
+
+    .pin-item {
+      background: rgba(7, 10, 19, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.03);
       border-radius: 12px;
-      padding: 0.85rem 1rem;
+      padding: 0.8rem 1rem;
       display: flex;
       align-items: center;
       gap: 0.75rem;
@@ -177,191 +407,213 @@
       transition: var(--transition-smooth);
     }
 
-    .stop-item:hover {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(255, 255, 255, 0.1);
-      transform: translateY(-2px);
+    .pin-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
     }
 
-    .status-indicator {
+    .pin-badge {
       width: 10px;
       height: 10px;
       border-radius: 50%;
       box-shadow: 0 0 8px currentColor;
+      flex-shrink: 0;
     }
 
-    .status-indicator.route-stop {
-      color: var(--color-route-stop);
-      background-color: var(--color-route-stop);
-    }
+    .pin-badge.completed { color: var(--color-completed); background-color: var(--color-completed); }
+    .pin-badge.planned { color: var(--color-planned); background-color: var(--color-planned); }
+    .pin-badge.suggestion { color: var(--color-suggestion); background-color: var(--color-suggestion); }
 
-    .status-indicator.request-pin {
-      color: var(--color-request);
-      background-color: var(--color-request);
-    }
-
-    .status-indicator.support-zone {
-      color: var(--color-support);
-      background-color: var(--color-support);
-    }
-
-    .stop-info {
+    .pin-text {
       flex-grow: 1;
     }
 
-    .stop-info h4 {
-      font-size: 0.95rem;
+    .pin-text h4 {
+      font-size: 0.9rem;
       font-weight: 600;
       color: var(--text-main);
     }
 
-    .stop-info p {
+    .pin-text p {
       font-size: 0.75rem;
       color: var(--text-muted);
     }
 
-    .chevron {
+    .pin-chevron {
       color: var(--text-muted);
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       transition: var(--transition-smooth);
     }
 
-    .stop-item:hover .chevron {
-      color: var(--text-main);
-      transform: translateX(3px);
+    .pin-item:hover .pin-chevron {
+      color: #fff;
+      transform: translateX(2px);
     }
 
-    /* Stats Panel */
-    .stats-panel {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.5rem;
-      margin-top: auto;
-      border-top: 1px solid var(--border-color);
-      padding-top: 1.25rem;
-    }
-
-    .stat-box {
+    /* Requests list in Sidebar */
+    .requests-list {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      text-align: center;
-      background: rgba(15, 23, 42, 0.3);
-      padding: 0.6rem;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.02);
+      gap: 0.75rem;
+      max-height: 200px;
+      overflow-y: auto;
+      padding-right: 0.25rem;
     }
 
-    .stat-val {
-      font-family: var(--font-heading);
-      font-size: 1.25rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .requests-list::-webkit-scrollbar {
+      width: 4px;
     }
-
-    .stat-lbl {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-top: 0.15rem;
-    }
-
-    /* Interactive Map Element */
-    .map-container {
-      position: relative;
-      width: 100%;
-    }
-
-    #map {
-      width: 100%;
-      height: 70vh; /* Default Mobile height */
-      border-radius: 16px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-      z-index: 1;
-    }
-
-    @media (min-width: 992px) {
-      #map {
-        height: 85vh; /* Desktop Height */
-      }
-    }
-
-    /* Custom Leaflet Map Styling Override */
-    .leaflet-container {
-      background: #0d121f !important;
-      font-family: var(--font-body) !important;
-    }
-
-    /* Custom Popup Styles */
-    .leaflet-popup-content-wrapper {
-      background: rgba(15, 23, 42, 0.95) !important;
-      backdrop-filter: blur(12px) !important;
-      -webkit-backdrop-filter: blur(12px) !important;
-      border: 1px solid var(--border-color) !important;
-      color: var(--text-main) !important;
-      border-radius: 12px !important;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
-      padding: 0.5rem !important;
-    }
-
-    .leaflet-popup-tip {
-      background: rgba(15, 23, 42, 0.95) !important;
-      border-bottom: 1px solid var(--border-color) !important;
-      border-right: 1px solid var(--border-color) !important;
-    }
-
-    .popup-content {
-      padding: 0.25rem;
-    }
-
-    .popup-tag {
-      font-size: 0.65rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 0.2rem 0.5rem;
+    .requests-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 4px;
-      display: inline-block;
-      margin-bottom: 0.5rem;
     }
 
-    .tag-stop {
-      background-color: rgba(245, 158, 11, 0.15);
-      color: var(--color-route-stop);
-      border: 1px solid rgba(245, 158, 11, 0.3);
+    .request-item {
+      background: rgba(7, 10, 19, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      padding: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      position: relative;
     }
 
-    .tag-request {
-      background-color: rgba(59, 130, 246, 0.15);
-      color: var(--color-request);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-    }
-
-    .tag-support {
-      background-color: rgba(16, 185, 129, 0.15);
-      color: var(--color-support);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-
-    .popup-title {
-      font-family: var(--font-heading);
-      font-size: 1.05rem;
+    .request-item h4 {
+      font-size: 0.85rem;
       font-weight: 700;
-      margin-bottom: 0.25rem;
       color: #fff;
     }
 
-    .popup-desc {
+    .request-item p {
       font-size: 0.8rem;
       color: var(--text-muted);
-      line-height: 1.4;
+      line-height: 1.3;
     }
 
-    /* Custom Leaflet Marker Pins (DivIcon) */
+    .request-share-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: var(--transition-smooth);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      border: 1px solid transparent;
+    }
+
+    .request-share-btn:hover {
+      color: var(--color-completed);
+      border-color: rgba(168, 85, 247, 0.2);
+      background: rgba(168, 85, 247, 0.05);
+    }
+
+    /* Support "Fuel the Journey" Card */
+    .support-card {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%), var(--bg-card);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+    }
+
+    .support-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .support-btn {
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-radius: 10px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.75rem;
+      color: #fff;
+      transition: var(--transition-smooth);
+      min-height: 48px;
+    }
+
+    .support-btn-gallon {
+      background: rgba(168, 85, 247, 0.2);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+    }
+
+    .support-btn-gallon:hover {
+      background: rgba(168, 85, 247, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
+    }
+
+    .support-btn-patreon {
+      background: rgba(249, 115, 22, 0.2);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+    }
+
+    .support-btn-patreon:hover {
+      background: rgba(249, 115, 22, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+    }
+
+    /* Leaflet popup form (Creator form inside map) */
+    .popup-form {
+      padding: 0.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      width: 260px;
+    }
+
+    .popup-form h3 {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.2rem;
+    }
+
+    .popup-form .form-group {
+      margin-bottom: 0;
+      gap: 0.25rem;
+    }
+
+    .popup-form label {
+      font-size: 0.7rem;
+    }
+
+    .popup-form input,
+    .popup-form textarea,
+    .popup-form select {
+      padding: 0.5rem;
+      font-size: 0.85rem;
+      min-height: 36px;
+    }
+
+    .popup-form textarea {
+      min-height: 60px;
+    }
+
+    .popup-form-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+
+    .popup-form-actions .btn {
+      flex: 1;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.75rem;
+      min-height: 36px;
+    }
+
+    /* Custom Leaflet Marker Pins */
     .custom-marker {
       display: flex;
       align-items: center;
@@ -385,36 +637,144 @@
       height: 32px;
       border-radius: 50%;
       background-color: var(--marker-color);
-      opacity: 0.4;
-      animation: markerPulse 2s infinite ease-out;
+      opacity: 0.45;
+      animation: markerPulse 2.2s infinite ease-out;
       z-index: 1;
     }
 
     @keyframes markerPulse {
-      0% {
-        transform: scale(0.5);
-        opacity: 0.8;
-      }
-      100% {
-        transform: scale(2.2);
-        opacity: 0;
-      }
+      0% { transform: scale(0.5); opacity: 0.9; }
+      100% { transform: scale(2.2); opacity: 0; }
     }
 
-    .marker-route-stop { --marker-color: var(--color-route-stop); }
-    .marker-request { --marker-color: var(--color-request); }
-    .marker-support { --marker-color: var(--color-support); }
+    .marker-completed { --marker-color: var(--color-completed); }
+    .marker-planned { --marker-color: var(--color-planned); }
+    .marker-suggestion { --marker-color: var(--color-suggestion); }
 
-    /* Custom attribution styling */
-    .leaflet-control-attribution {
-      background: rgba(15, 23, 42, 0.75) !important;
-      backdrop-filter: blur(8px);
-      color: var(--text-muted) !important;
+    /* Custom Popup Styles */
+    .popup-detail {
+      padding: 0.25rem;
+    }
+
+    .popup-tag {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.5rem;
       border-radius: 4px;
-      border: 1px solid var(--border-color);
+      display: inline-block;
+      margin-bottom: 0.5rem;
     }
-    .leaflet-control-attribution a {
-      color: var(--color-request) !important;
+
+    .tag-completed {
+      background-color: rgba(168, 85, 247, 0.15);
+      color: var(--color-completed);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+
+    .tag-planned {
+      background-color: rgba(16, 185, 129, 0.15);
+      color: var(--color-planned);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .tag-suggestion {
+      background-color: rgba(251, 191, 36, 0.15);
+      color: var(--color-suggestion);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+
+    .popup-title {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      color: #fff;
+    }
+
+    .popup-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* Modal dialog styling */
+    dialog {
+      border: none;
+      background: transparent;
+      padding: 0;
+      max-width: 500px;
+      width: 90%;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+      z-index: 9999;
+    }
+
+    dialog::backdrop {
+      background: rgba(5, 7, 13, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .dialog-content {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      color: var(--text-main);
+    }
+
+    .dialog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dialog-header h2 {
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+
+    .dialog-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .dialog-close-btn:hover {
+      color: #fff;
+    }
+
+    #export-json-text {
+      width: 100%;
+      height: 200px;
+      background: rgba(7, 10, 19, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 0.75rem;
+      color: var(--text-main);
+      font-family: monospace;
+      font-size: 0.85rem;
+      resize: vertical;
+      outline: none;
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
     }
   </style>
 </head>
@@ -422,164 +782,507 @@
 
   <div class="dashboard-container">
     <header class="app-header">
-      <div class="header-top">
-        <span class="logo-emoji">🦆</span>
-        <h1>JustDuckit Roadtrip</h1>
+      <div class="header-info">
+        <div class="logo-container">
+          <span class="logo-emoji">🦆</span>
+          <h1>JustDuckit Roadtrip</h1>
+        </div>
+        <p class="subtitle">Crowdsourced Live Tracker & Community Support Map</p>
       </div>
-      <p class="subtitle">Crowdsourced Live Tracker & Community Support Map</p>
+      <div class="header-controls">
+        <button type="button" class="btn btn-secondary" id="export-data-btn">Export Map Data</button>
+        <button type="button" class="btn btn-creator" id="creator-mode-toggle">
+          <span>Creator Mode</span>
+        </button>
+      </div>
     </header>
     
-    <div class="main-layout">
-      <aside class="sidebar">
-        <div class="card">
-          <div>
-            <h3>Trip Dashboard</h3>
-            <p class="card-desc">Interact with the locations below to center the tracker</p>
-          </div>
-          
-          <div class="stops-list">
-            <!-- Nashville Stop -->
-            <div class="stop-item" onclick="focusLocation([36.1627, -86.7816], 8, 'marker-nashville')">
-              <div class="status-indicator route-stop"></div>
-              <div class="stop-info">
-                <h4>Nashville, TN</h4>
-                <p>Current Route Stop</p>
-              </div>
-              <span class="chevron">➔</span>
-            </div>
-            
-            <!-- Memphis Request -->
-            <div class="stop-item" onclick="focusLocation([35.1495, -90.0490], 8, 'marker-memphis')">
-              <div class="status-indicator request-pin"></div>
-              <div class="stop-info">
-                <h4>Memphis, TN</h4>
-                <p>Community Request Pin</p>
-              </div>
-              <span class="chevron">➔</span>
-            </div>
-            
-            <!-- Knoxville Support -->
-            <div class="stop-item" onclick="focusLocation([35.9606, -83.9207], 8, 'marker-knoxville')">
-              <div class="status-indicator support-zone"></div>
-              <div class="stop-info">
-                <h4>Knoxville, TN</h4>
-                <p>Support Zone</p>
-              </div>
-              <span class="chevron">➔</span>
-            </div>
-          </div>
-
-          <div class="stats-panel">
-            <div class="stat-box">
-              <span class="stat-val">1</span>
-              <span class="stat-lbl">Active Stops</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-val">1</span>
-              <span class="stat-lbl">Requests</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-val">1</span>
-              <span class="stat-lbl">Support Zones</span>
-            </div>
-          </div>
+    <div class="main-grid">
+      <!-- Left/Center Map Wrapper -->
+      <main class="map-wrapper">
+        <div class="creator-banner" id="creator-banner">
+          <div class="pulse-dot"></div>
+          <span>Creator Mode Active: Click any point on the map to add a pin</span>
         </div>
-      </aside>
-
-      <main class="map-container">
         <div id="map"></div>
       </main>
+
+      <!-- Right/Bottom Sidebar -->
+      <aside class="sidebar">
+        <!-- Card 1: Adventure stops checklist -->
+        <section class="card">
+          <div>
+            <h3 class="card-title">Adventure Tracker</h3>
+            <p class="card-desc">Click any location below to center and focus the tracker map</p>
+          </div>
+          
+          <div class="pins-scroll-area" id="pins-list-container">
+            <!-- Populated via Javascript -->
+          </div>
+        </section>
+
+        <!-- Card 2: Community Request Form -->
+        <section class="card">
+          <div>
+            <h3 class="card-title">Drop a Roadtrip Request</h3>
+            <p class="card-desc">Suggest a destination or warning stop for the crew!</p>
+          </div>
+          
+          <form id="community-request-form">
+            <div class="form-group">
+              <label for="request-city">City, State</label>
+              <input type="text" id="request-city" placeholder="e.g. Memphis, TN" required autocomplete="address-level2">
+            </div>
+            <div class="form-group">
+              <label for="request-desc">What's out there?</label>
+              <textarea id="request-desc" placeholder="Tell the crew what to see, do, or watch out for..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Request</button>
+          </form>
+
+          <div class="requests-list" id="requests-list-container">
+            <!-- Populated via Javascript -->
+          </div>
+        </section>
+
+        <!-- Card 3: Support Fuel the Journey -->
+        <section class="card support-card">
+          <div>
+            <h3 class="card-title">Fuel the Journey ⛽</h3>
+            <p class="card-desc">Support the road trip and keep the rig rollin'. Help us hit the next state line!</p>
+          </div>
+          <div class="support-grid">
+            <a href="https://ko-fi.com" target="_blank" rel="noopener" class="support-btn support-btn-gallon">
+              <span>☕ Buy Us a Gallon</span>
+            </a>
+            <a href="https://patreon.com" target="_blank" rel="noopener" class="support-btn support-btn-patreon">
+              <span>👑 Join the Crew</span>
+            </a>
+          </div>
+        </section>
+      </aside>
     </div>
   </div>
 
+  <!-- Native Export Data Modal Dialog -->
+  <dialog id="export-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h2>Export Map Data</h2>
+        <button type="button" class="dialog-close-btn" id="export-dialog-close-top" aria-label="Close dialog">×</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">Copy this JSON snippet of your map pins to share or save your roadtrip configuration.</p>
+      <textarea id="export-json-text" readonly></textarea>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-primary" id="copy-json-btn">Copy to Clipboard</button>
+        <button type="button" class="btn btn-secondary" id="export-dialog-close">Close</button>
+      </div>
+    </div>
+  </dialog>
+
   <script>
-    // Initialize the Leaflet map centered on the United States
+    // --- Initial Config & Data Setup ---
+    const defaultPins = [
+      {
+        lat: 36.1627,
+        lng: -86.7816,
+        title: "Music City Baseline",
+        desc: "Checked out Nashville's historic downtown, ate hot chicken, and jammed with local duck fans.",
+        status: "completed"
+      },
+      {
+        lat: 35.1495,
+        lng: -90.0490,
+        title: "Beale Street Parades",
+        desc: "Planning to roll the rig through Beale Street and coordinate a community duck waddle event.",
+        status: "planned"
+      },
+      {
+        lat: 35.9606,
+        lng: -83.9207,
+        title: "Tennessee Duck Union Meetup",
+        desc: "Suggested by @TennesseeDucks: 'You guys need to check out the Sunsphere and have a tailgating party!'",
+        status: "suggestion"
+      }
+    ];
+
+    const defaultRequests = [
+      {
+        city: "Asheville, NC",
+        desc: "Beautiful mountain pass driving and local cider tasting meetup!"
+      },
+      {
+        city: "Atlanta, GA",
+        desc: "Ducking around the aquarium and meeting up with the Georgia Jeep & Truck Club."
+      }
+    ];
+
+    // Load states from LocalStorage or initialize with defaults
+    let pinsList = JSON.parse(localStorage.getItem('roadtrip_pins')) || [...defaultPins];
+    let requestsList = JSON.parse(localStorage.getItem('roadtrip_requests')) || [...defaultRequests];
+
+    // Save defaults to LocalStorage if not present
+    if (!localStorage.getItem('roadtrip_pins')) {
+      localStorage.setItem('roadtrip_pins', JSON.stringify(pinsList));
+    }
+    if (!localStorage.getItem('roadtrip_requests')) {
+      localStorage.setItem('roadtrip_requests', JSON.stringify(requestsList));
+    }
+
+    // --- State Variables ---
+    let creatorModeActive = false;
+    const markerStore = {};
+
+    // --- Initialize Leaflet Map ---
     const map = L.map('map', {
       zoomControl: true,
       scrollWheelZoom: true
     }).setView([37.0902, -95.7129], 4);
 
-    // Load the free OpenStreetMap tile layer (dark theme-friendly CartoDB Voyager tiles)
+    // CartoDB Dark Matter tile layer for deep space theme
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20
     }).addTo(map);
 
-    // Setup marker groups and references
-    const markerStore = {};
+    // Leaflet layer group to handle dynamic pins
+    const pinsLayerGroup = L.layerGroup().addTo(map);
 
-    // 1. Current Route Stop: Nashville, TN
-    const nashvilleMarker = L.marker([36.1627, -86.7816], {
-      icon: L.divIcon({
-        className: 'custom-marker marker-route-stop',
-        html: '<div class="marker-pin"></div><div class="marker-pulse"></div>',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
-      })
-    }).addTo(map);
+    // --- UI Element Selectors ---
+    const pinsContainer = document.getElementById('pins-list-container');
+    const requestsContainer = document.getElementById('requests-list-container');
+    const creatorToggle = document.getElementById('creator-mode-toggle');
+    const creatorBanner = document.getElementById('creator-banner');
+    
+    const requestForm = document.getElementById('community-request-form');
+    const requestCityInput = document.getElementById('request-city');
+    const requestDescInput = document.getElementById('request-desc');
 
-    nashvilleMarker.bindPopup(`
-      <div class="popup-content">
-        <span class="popup-tag tag-stop">Current Route Stop</span>
-        <h4 class="popup-title">Nashville, TN</h4>
-        <p class="popup-desc">The crew is currently refueling and setting up for the Music City meet-up. Drop by to say hi!</p>
-      </div>
-    `);
-    markerStore['marker-nashville'] = nashvilleMarker;
+    const exportBtn = document.getElementById('export-data-btn');
+    const exportDialog = document.getElementById('export-dialog');
+    const exportCloseBtn = document.getElementById('export-dialog-close');
+    const exportCloseTop = document.getElementById('export-dialog-close-top');
+    const exportJsonText = document.getElementById('export-json-text');
+    const copyJsonBtn = document.getElementById('copy-json-btn');
 
-    // 2. Community Request Pin: Memphis, TN
-    const memphisMarker = L.marker([35.1495, -90.0490], {
-      icon: L.divIcon({
-        className: 'custom-marker marker-request',
-        html: '<div class="marker-pin"></div><div class="marker-pulse"></div>',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
-      })
-    }).addTo(map);
+    // --- Render Functions ---
 
-    memphisMarker.bindPopup(`
-      <div class="popup-content">
-        <span class="popup-tag tag-request">Community Request Pin</span>
-        <h4 class="popup-title">Memphis, TN</h4>
-        <p class="popup-desc">Requested by @MemphisDucks: "Please bring the crew down Beale Street for a duck parade!"</p>
-      </div>
-    `);
-    markerStore['marker-memphis'] = memphisMarker;
+    // 1. Redraw Markers on the Map
+    function renderMapMarkers() {
+      // Clear existing markers
+      pinsLayerGroup.clearLayers();
+      
+      // Clear markerStore keys
+      for (const key in markerStore) delete markerStore[key];
 
-    // 3. Support Zone: Knoxville, TN
-    const knoxvilleMarker = L.marker([35.9606, -83.9207], {
-      icon: L.divIcon({
-        className: 'custom-marker marker-support',
-        html: '<div class="marker-pin"></div><div class="marker-pulse"></div>',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
-      })
-    }).addTo(map);
+      pinsList.forEach((pin, index) => {
+        const markerKey = `pin-${index}`;
+        
+        // Match status to marker CSS variable subclass
+        let markerClass = 'marker-suggestion';
+        let statusLabel = 'Viewer Suggestion';
+        let tagClass = 'tag-suggestion';
+        
+        if (pin.status === 'completed') {
+          markerClass = 'marker-completed';
+          statusLabel = 'Completed Adventure';
+          tagClass = 'tag-completed';
+        } else if (pin.status === 'planned') {
+          markerClass = 'marker-planned';
+          statusLabel = 'Planned Stop';
+          tagClass = 'tag-planned';
+        }
 
-    knoxvilleMarker.bindPopup(`
-      <div class="popup-content">
-        <span class="popup-tag tag-support">Support Zone</span>
-        <h4 class="popup-title">Knoxville, TN</h4>
-        <p class="popup-desc">Hosted by Tennessee Duck Union. Offers free charging, vehicle checks, and snacks for team members.</p>
-      </div>
-    `);
-    markerStore['marker-knoxville'] = knoxvilleMarker;
+        // Custom divIcon pulsing marker
+        const marker = L.marker([pin.lat, pin.lng], {
+          icon: L.divIcon({
+            className: `custom-marker ${markerClass}`,
+            html: '<div class="marker-pin"></div><div class="marker-pulse"></div>',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+          })
+        });
 
-    // Interactive focus helper function
+        // Set Popup template content
+        marker.bindPopup(`
+          <div class="popup-detail">
+            <span class="popup-tag ${tagClass}">${statusLabel}</span>
+            <h4 class="popup-title">${escapeHTML(pin.title)}</h4>
+            <p class="popup-desc">${escapeHTML(pin.desc)}</p>
+          </div>
+        `);
+
+        marker.addTo(pinsLayerGroup);
+        markerStore[markerKey] = marker;
+      });
+    }
+
+    // 2. Render Sidebar Location Checklist List
+    function renderSidebarPins() {
+      pinsContainer.innerHTML = '';
+
+      if (pinsList.length === 0) {
+        pinsContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1rem;">No pins added yet. Toggle Creator Mode to add one!</p>';
+        return;
+      }
+
+      pinsList.forEach((pin, index) => {
+        const markerKey = `pin-${index}`;
+        
+        const item = document.createElement('div');
+        item.className = 'pin-item';
+        
+        // Handle click event on the list item to focus map
+        item.addEventListener('click', () => {
+          focusLocation([pin.lat, pin.lng], 8, markerKey);
+        });
+
+        // Match status for badge color
+        let badgeClass = 'suggestion';
+        let statusText = 'Viewer Suggestion';
+        if (pin.status === 'completed') {
+          badgeClass = 'completed';
+          statusText = 'Completed Stop';
+        } else if (pin.status === 'planned') {
+          badgeClass = 'planned';
+          statusText = 'Planned Stop';
+        }
+
+        item.innerHTML = `
+          <div class="pin-badge ${badgeClass}"></div>
+          <div class="pin-text">
+            <h4>${escapeHTML(pin.title)}</h4>
+            <p>${statusText}</p>
+          </div>
+          <span class="pin-chevron">➔</span>
+        `;
+        pinsContainer.appendChild(item);
+      });
+    }
+
+    // 3. Render Community Viewer Requests List
+    function renderRequests() {
+      requestsContainer.innerHTML = '';
+      
+      if (requestsList.length === 0) {
+        requestsContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1rem;">No suggestions submitted yet.</p>';
+        return;
+      }
+
+      requestsList.forEach((req, index) => {
+        const item = document.createElement('div');
+        item.className = 'request-item';
+        
+        const shareText = `Roadtrip Request: ${req.city} - ${req.desc}`;
+        
+        item.innerHTML = `
+          <h4>${escapeHTML(req.city)}</h4>
+          <p>${escapeHTML(req.desc)}</p>
+          <button type="button" class="request-share-btn" data-share-text="${escapeHTML(shareText)}">Copy</button>
+        `;
+
+        // Attach event listener directly to the share button (CSP safe)
+        const btn = item.querySelector('.request-share-btn');
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const textToCopy = btn.getAttribute('data-share-text');
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            btn.style.color = 'var(--color-planned)';
+            setTimeout(() => {
+              btn.textContent = originalText;
+              btn.style.color = '';
+            }, 1500);
+          });
+        });
+
+        requestsContainer.appendChild(item);
+      });
+    }
+
+    // --- Interactive Control Helpers ---
+
+    // Focus Map at Coordinates
     function focusLocation(coords, zoomLevel, markerKey) {
       map.flyTo(coords, zoomLevel, {
         animate: true,
         duration: 1.5
       });
       
-      // Auto open popup after flyTo finishes
+      // Auto open popup after flying transition completes
       setTimeout(() => {
         if (markerStore[markerKey]) {
           markerStore[markerKey].openPopup();
         }
       }, 1500);
     }
+
+    // Escape HTML helpers to prevent XSS injection
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, 
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+      );
+    }
+
+    // --- Event Listeners & Interactions ---
+
+    // 1. Creator Mode Toggle Button
+    creatorToggle.addEventListener('click', () => {
+      creatorModeActive = !creatorModeActive;
+      
+      if (creatorModeActive) {
+        creatorToggle.classList.add('active');
+        creatorToggle.querySelector('span').textContent = 'Creator Mode: ON';
+        creatorBanner.style.display = 'flex';
+      } else {
+        creatorToggle.classList.remove('active');
+        creatorToggle.querySelector('span').textContent = 'Creator Mode';
+        creatorBanner.style.display = 'none';
+        map.closePopup();
+      }
+    });
+
+    // 2. Map Clicks (To place pins when Creator Mode is ON)
+    map.on('click', (e) => {
+      if (!creatorModeActive) return;
+
+      const { lat, lng } = e.latlng;
+
+      // Create custom form element node to ensure event listeners work (CSP safe)
+      const formContainer = document.createElement('form');
+      formContainer.className = 'popup-form';
+      formContainer.id = 'map-creator-form';
+      formContainer.innerHTML = `
+        <h3>Add Trip Pin</h3>
+        <div class="form-group">
+          <label for="p-title">Location Title</label>
+          <input type="text" id="p-title" placeholder="e.g. Memphis BBQ Stop" required>
+        </div>
+        <div class="form-group">
+          <label for="p-desc">Narrative / Why</label>
+          <textarea id="p-desc" placeholder="Describe the stop or destination goal..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="p-status">Status / Category</label>
+          <select id="p-status" required>
+            <option value="completed">Completed Adventure</option>
+            <option value="planned">Planned Stop</option>
+            <option value="suggestion">Viewer Suggestion</option>
+          </select>
+        </div>
+        <div class="popup-form-actions">
+          <button type="submit" class="btn btn-primary">Save Pin</button>
+          <button type="button" class="btn btn-secondary" id="p-cancel">Cancel</button>
+        </div>
+      `;
+
+      // Disable map propagation so clicks/scrolls in form do not trigger map actions
+      L.DomEvent.disableClickPropagation(formContainer);
+      L.DomEvent.disableScrollPropagation(formContainer);
+
+      // Render form inside Leaflet popup
+      const popup = L.popup()
+        .setLatLng([lat, lng])
+        .setContent(formContainer)
+        .openOn(map);
+
+      // Form Submit Handler
+      formContainer.addEventListener('submit', (evt) => {
+        evt.preventDefault();
+        
+        const title = formContainer.querySelector('#p-title').value.trim();
+        const desc = formContainer.querySelector('#p-desc').value.trim();
+        const status = formContainer.querySelector('#p-status').value;
+
+        // Append new pin object
+        const newPin = { lat, lng, title, desc, status };
+        pinsList.push(newPin);
+        
+        // Save to LocalStorage
+        localStorage.setItem('roadtrip_pins', JSON.stringify(pinsList));
+        
+        // Redraw lists
+        renderMapMarkers();
+        renderSidebarPins();
+        
+        // Close popup
+        map.closePopup();
+      });
+
+      // Form Cancel Handler
+      formContainer.querySelector('#p-cancel').addEventListener('click', () => {
+        map.closePopup();
+      });
+    });
+
+    // 3. Submit Community Viewer Request Form
+    requestForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const city = requestCityInput.value.trim();
+      const desc = requestDescInput.value.trim();
+
+      if (!city || !desc) return;
+
+      const newRequest = { city, desc };
+      requestsList.unshift(newRequest); // Add new request to the top
+
+      // Save to LocalStorage
+      localStorage.setItem('roadtrip_requests', JSON.stringify(requestsList));
+
+      // Re-render requests list
+      renderRequests();
+
+      // Reset form fields
+      requestCityInput.value = '';
+      requestDescInput.value = '';
+    });
+
+    // 4. Export JSON Dialog Modal
+    exportBtn.addEventListener('click', () => {
+      exportJsonText.value = JSON.stringify(pinsList, null, 2);
+      exportDialog.showModal();
+    });
+
+    // Close Dialog Helpers
+    function closeExportDialog() {
+      exportDialog.close();
+      // Reset copy button status
+      copyJsonBtn.textContent = 'Copy to Clipboard';
+      copyJsonBtn.classList.remove('btn-secondary');
+      copyJsonBtn.classList.add('btn-primary');
+    }
+
+    exportCloseBtn.addEventListener('click', closeExportDialog);
+    exportCloseTop.addEventListener('click', closeExportDialog);
+
+    // Copy to Clipboard
+    copyJsonBtn.addEventListener('click', () => {
+      exportJsonText.select();
+      navigator.clipboard.writeText(exportJsonText.value).then(() => {
+        copyJsonBtn.textContent = 'Copied!';
+        copyJsonBtn.classList.remove('btn-primary');
+        copyJsonBtn.classList.add('btn-secondary');
+        setTimeout(() => {
+          copyJsonBtn.textContent = 'Copy to Clipboard';
+          copyJsonBtn.classList.remove('btn-secondary');
+          copyJsonBtn.classList.add('btn-primary');
+        }, 2000);
+      });
+    });
+
+    // --- On Application Startup ---
+    renderMapMarkers();
+    renderSidebarPins();
+    renderRequests();
   </script>
 </body>
 </html>
