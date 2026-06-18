@@ -18,7 +18,7 @@
     /* Design Tokens */
     :root {
       --bg-dark: #070a13;
-      --bg-card: rgba(15, 23, 42, 0.7);
+      --bg-card: rgba(15, 23, 42, 0.75);
       --bg-input: rgba(7, 10, 19, 0.6);
       --border-color: rgba(255, 255, 255, 0.08);
       --border-focus: rgba(168, 85, 247, 0.5);
@@ -29,6 +29,7 @@
       --color-completed: #c084fc;   /* Light Purple */
       --color-planned: #10b981;     /* Emerald Green */
       --color-suggestion: #fbbf24;  /* Amber Yellow */
+      --color-doginal: #f97316;     /* Orange */
       
       --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -125,13 +126,6 @@
       font-weight: 400;
     }
 
-    /* Header Controls */
-    .header-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
     /* Button System */
     .btn {
       font-family: var(--font-body);
@@ -174,32 +168,6 @@
       transform: translateY(-1px);
     }
 
-    /* Creator Mode Toggle Button */
-    .btn-creator {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px dashed var(--color-completed);
-      color: var(--color-completed);
-      box-shadow: 0 0 10px rgba(168, 85, 247, 0.05);
-    }
-
-    .btn-creator:hover {
-      background: rgba(168, 85, 247, 0.08);
-      box-shadow: 0 0 15px rgba(168, 85, 247, 0.15);
-    }
-
-    .btn-creator.active {
-      background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-      color: #fff;
-      border-style: solid;
-      box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
-      animation: pulseGlow 2s infinite alternate;
-    }
-
-    @keyframes pulseGlow {
-      0% { box-shadow: 0 0 12px rgba(168, 85, 247, 0.3); }
-      100% { box-shadow: 0 0 24px rgba(236, 72, 153, 0.6); }
-    }
-
     /* Main Content Layout Grid */
     .main-grid {
       display: grid;
@@ -238,14 +206,14 @@
       z-index: 1;
     }
 
-    /* Creator Mode Warning Banner Overlay */
-    .creator-banner {
+    /* Map Tooltip Banner */
+    .map-banner {
       position: absolute;
       top: 15px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(15, 23, 42, 0.95);
-      border: 1px solid var(--color-completed);
+      border: 1px solid var(--border-color);
       border-radius: 30px;
       padding: 0.6rem 1.5rem;
       color: #fff;
@@ -253,25 +221,24 @@
       font-weight: 600;
       z-index: 1000;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      display: none;
+      display: flex;
       align-items: center;
       gap: 0.5rem;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      animation: slideDown 0.3s ease-out;
     }
 
-    @keyframes slideDown {
-      0% { top: -20px; opacity: 0; }
-      100% { top: 15px; opacity: 1; }
-    }
-
-    .creator-banner .pulse-dot {
+    .map-banner .pulse-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--color-completed);
-      animation: waddle 0.8s infinite alternate;
+      background: var(--color-doginal);
+      animation: pulseAlert 1s infinite alternate;
+    }
+
+    @keyframes pulseAlert {
+      0% { transform: scale(0.8); opacity: 0.5; }
+      100% { transform: scale(1.3); opacity: 1; }
     }
 
     /* Sidebar Area Styles */
@@ -377,6 +344,12 @@
       box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
     }
 
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
     /* Location Pin List in Sidebar */
     .pins-scroll-area {
       display: flex;
@@ -424,6 +397,7 @@
     .pin-badge.completed { color: var(--color-completed); background-color: var(--color-completed); }
     .pin-badge.planned { color: var(--color-planned); background-color: var(--color-planned); }
     .pin-badge.suggestion { color: var(--color-suggestion); background-color: var(--color-suggestion); }
+    .pin-badge.doginal { color: var(--color-doginal); background-color: var(--color-doginal); }
 
     .pin-text {
       flex-grow: 1;
@@ -562,57 +536,6 @@
       box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
     }
 
-    /* Leaflet popup form (Creator form inside map) */
-    .popup-form {
-      padding: 0.25rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.65rem;
-      width: 260px;
-    }
-
-    .popup-form h3 {
-      font-family: var(--font-heading);
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 0.2rem;
-    }
-
-    .popup-form .form-group {
-      margin-bottom: 0;
-      gap: 0.25rem;
-    }
-
-    .popup-form label {
-      font-size: 0.7rem;
-    }
-
-    .popup-form input,
-    .popup-form textarea,
-    .popup-form select {
-      padding: 0.5rem;
-      font-size: 0.85rem;
-      min-height: 36px;
-    }
-
-    .popup-form textarea {
-      min-height: 60px;
-    }
-
-    .popup-form-actions {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 0.25rem;
-    }
-
-    .popup-form-actions .btn {
-      flex: 1;
-      padding: 0.4rem 0.8rem;
-      font-size: 0.75rem;
-      min-height: 36px;
-    }
-
     /* Custom Leaflet Marker Pins */
     .custom-marker {
       display: flex;
@@ -651,6 +574,52 @@
     .marker-planned { --marker-color: var(--color-planned); }
     .marker-suggestion { --marker-color: var(--color-suggestion); }
 
+    /* Custom Doginal Pixelated Dog Pin Icon styles */
+    .marker-doginal {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .marker-doginal-content {
+      font-size: 1.6rem;
+      z-index: 3;
+      animation: dogWiggle 1s infinite alternate ease-in-out;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .marker-doginal-glow {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2.5px solid var(--color-doginal);
+      box-shadow: 0 0 14px var(--color-doginal), inset 0 0 6px var(--color-doginal);
+      background: rgba(249, 115, 22, 0.2);
+      animation: dogGlow 1.5s infinite alternate ease-in-out;
+      z-index: 1;
+    }
+
+    @keyframes dogWiggle {
+      0% { transform: rotate(-5deg) scale(0.95); }
+      100% { transform: rotate(5deg) scale(1.05); }
+    }
+
+    @keyframes dogGlow {
+      0% {
+        box-shadow: 0 0 8px rgba(249, 115, 22, 0.5), inset 0 0 4px rgba(249, 115, 22, 0.3);
+        transform: scale(0.9);
+      }
+      100% {
+        box-shadow: 0 0 20px rgba(249, 115, 22, 0.9), inset 0 0 10px rgba(249, 115, 22, 0.6);
+        transform: scale(1.15);
+      }
+    }
+
     /* Custom Popup Styles */
     .popup-detail {
       padding: 0.25rem;
@@ -685,6 +654,12 @@
       border: 1px solid rgba(251, 191, 36, 0.3);
     }
 
+    .tag-doginal {
+      background-color: rgba(249, 115, 22, 0.15);
+      color: var(--color-doginal);
+      border: 1px solid rgba(249, 115, 22, 0.3);
+    }
+
     .popup-title {
       font-family: var(--font-heading);
       font-size: 1.1rem;
@@ -697,6 +672,36 @@
       font-size: 0.85rem;
       color: var(--text-muted);
       line-height: 1.45;
+    }
+
+    /* Leaflet Overrides */
+    .leaflet-container {
+      background: #0d121f !important;
+      font-family: var(--font-body) !important;
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: rgba(13, 18, 30, 0.95) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 16px !important;
+      color: #f8fafc !important;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.6) !important;
+    }
+    .leaflet-popup-tip {
+      background: rgba(13, 18, 30, 0.95) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    .leaflet-control-attribution {
+      background: rgba(15, 23, 42, 0.75) !important;
+      backdrop-filter: blur(8px);
+      color: var(--text-muted) !important;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+    .leaflet-control-attribution a {
+      color: var(--color-planned) !important;
     }
 
     /* Modal dialog styling */
@@ -787,33 +792,73 @@
           <span class="logo-emoji">🦆</span>
           <h1>JustDuckit Roadtrip</h1>
         </div>
-        <p class="subtitle">Crowdsourced Live Tracker & Community Support Map</p>
+        <p class="subtitle">Creator Control Deck & Live Tracker</p>
       </div>
-      <div class="header-controls">
+      <div>
         <button type="button" class="btn btn-secondary" id="export-data-btn">Export Map Data</button>
-        <button type="button" class="btn btn-creator" id="creator-mode-toggle">
-          <span>Creator Mode</span>
-        </button>
       </div>
     </header>
     
     <div class="main-grid">
       <!-- Left/Center Map Wrapper -->
       <main class="map-wrapper">
-        <div class="creator-banner" id="creator-banner">
+        <div class="map-banner">
           <div class="pulse-dot"></div>
-          <span>Creator Mode Active: Click any point on the map to add a pin</span>
+          <span>Click any point on the map to set coordinate inputs below!</span>
         </div>
         <div id="map"></div>
       </main>
 
       <!-- Right/Bottom Sidebar -->
       <aside class="sidebar">
-        <!-- Card 1: Adventure stops checklist -->
+        <!-- Card 1: Creator Control Deck (Permanently Accessible) -->
+        <section class="card" id="creator-deck-card">
+          <div>
+            <h3 class="card-title">Creator Control Deck 🛠️</h3>
+            <p class="card-desc">Populate coordinates by clicking directly on the map, then fill stop details.</p>
+          </div>
+          
+          <form id="creator-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="creator-lat">Latitude</label>
+                <input type="text" id="creator-lat" placeholder="Click map..." required readonly>
+              </div>
+              <div class="form-group">
+                <label for="creator-lng">Longitude</label>
+                <input type="text" id="creator-lng" placeholder="Click map..." required readonly>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="creator-title">Destination Title</label>
+              <input type="text" id="creator-title" placeholder="e.g. Music City Meetup" required autocomplete="off">
+            </div>
+            
+            <div class="form-group">
+              <label for="creator-desc">Why We're Here</label>
+              <textarea id="creator-desc" placeholder="Describe the stop goals or adventure details..." required></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="creator-status">Pin Type</label>
+              <select id="creator-status" required>
+                <option value="planned">🟢 Upcoming Stop</option>
+                <option value="completed">🟣 Completed Stop</option>
+                <option value="suggestion">🟡 Viewer Suggestion</option>
+                <option value="doginal">🐶 Doginal Dog Stop</option>
+              </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Save Pin</button>
+          </form>
+        </section>
+
+        <!-- Card 2: Adventure stops list -->
         <section class="card">
           <div>
             <h3 class="card-title">Adventure Tracker</h3>
-            <p class="card-desc">Click any location below to center and focus the tracker map</p>
+            <p class="card-desc">Active itinerary stops stored in your session. Click to focus.</p>
           </div>
           
           <div class="pins-scroll-area" id="pins-list-container">
@@ -821,7 +866,7 @@
           </div>
         </section>
 
-        <!-- Card 2: Community Request Form -->
+        <!-- Card 3: Community Request Form -->
         <section class="card">
           <div>
             <h3 class="card-title">Drop a Roadtrip Request</h3>
@@ -845,7 +890,7 @@
           </div>
         </section>
 
-        <!-- Card 3: Support Fuel the Journey -->
+        <!-- Card 4: Support Fuel the Journey -->
         <section class="card support-card">
           <div>
             <h3 class="card-title">Fuel the Journey ⛽</h3>
@@ -881,30 +926,9 @@
   </dialog>
 
   <script>
-    // --- Initial Config & Data Setup ---
-    const defaultPins = [
-      {
-        lat: 36.1627,
-        lng: -86.7816,
-        title: "Music City Baseline",
-        desc: "Checked out Nashville's historic downtown, ate hot chicken, and jammed with local duck fans.",
-        status: "completed"
-      },
-      {
-        lat: 35.1495,
-        lng: -90.0490,
-        title: "Beale Street Parades",
-        desc: "Planning to roll the rig through Beale Street and coordinate a community duck waddle event.",
-        status: "planned"
-      },
-      {
-        lat: 35.9606,
-        lng: -83.9207,
-        title: "Tennessee Duck Union Meetup",
-        desc: "Suggested by @TennesseeDucks: 'You guys need to check out the Sunsphere and have a tailgating party!'",
-        status: "suggestion"
-      }
-    ];
+    // --- Clean Slate Data Setup ---
+    // Source data array is completely empty of dummy stops on initialization
+    const defaultPins = [];
 
     const defaultRequests = [
       {
@@ -917,20 +941,19 @@
       }
     ];
 
-    // Load states from LocalStorage or initialize with defaults
-    let pinsList = JSON.parse(localStorage.getItem('roadtrip_pins')) || [...defaultPins];
-    let requestsList = JSON.parse(localStorage.getItem('roadtrip_requests')) || [...defaultRequests];
+    // Load state from LocalStorage (using v2 key to avoid loading old pregenerated markers)
+    let pinsList = JSON.parse(localStorage.getItem('roadtrip_pins_v2')) || [...defaultPins];
+    let requestsList = JSON.parse(localStorage.getItem('roadtrip_requests_v2')) || [...defaultRequests];
 
-    // Save defaults to LocalStorage if not present
-    if (!localStorage.getItem('roadtrip_pins')) {
-      localStorage.setItem('roadtrip_pins', JSON.stringify(pinsList));
+    // Save initial state to LocalStorage
+    if (!localStorage.getItem('roadtrip_pins_v2')) {
+      localStorage.setItem('roadtrip_pins_v2', JSON.stringify(pinsList));
     }
-    if (!localStorage.getItem('roadtrip_requests')) {
-      localStorage.setItem('roadtrip_requests', JSON.stringify(requestsList));
+    if (!localStorage.getItem('roadtrip_requests_v2')) {
+      localStorage.setItem('roadtrip_requests_v2', JSON.stringify(requestsList));
     }
 
     // --- State Variables ---
-    let creatorModeActive = false;
     const markerStore = {};
 
     // --- Initialize Leaflet Map ---
@@ -952,9 +975,14 @@
     // --- UI Element Selectors ---
     const pinsContainer = document.getElementById('pins-list-container');
     const requestsContainer = document.getElementById('requests-list-container');
-    const creatorToggle = document.getElementById('creator-mode-toggle');
-    const creatorBanner = document.getElementById('creator-banner');
     
+    const creatorForm = document.getElementById('creator-form');
+    const creatorLatInput = document.getElementById('creator-lat');
+    const creatorLngInput = document.getElementById('creator-lng');
+    const creatorTitleInput = document.getElementById('creator-title');
+    const creatorDescInput = document.getElementById('creator-desc');
+    const creatorStatusSelect = document.getElementById('creator-status');
+
     const requestForm = document.getElementById('community-request-form');
     const requestCityInput = document.getElementById('request-city');
     const requestDescInput = document.getElementById('request-desc');
@@ -979,28 +1007,35 @@
       pinsList.forEach((pin, index) => {
         const markerKey = `pin-${index}`;
         
-        // Match status to marker CSS variable subclass
+        let markerHtml = '<div class="marker-pin"></div><div class="marker-pulse"></div>';
         let markerClass = 'marker-suggestion';
         let statusLabel = 'Viewer Suggestion';
         let tagClass = 'tag-suggestion';
+        let isDoginal = false;
         
         if (pin.status === 'completed') {
           markerClass = 'marker-completed';
-          statusLabel = 'Completed Adventure';
+          statusLabel = 'Completed Stop';
           tagClass = 'tag-completed';
         } else if (pin.status === 'planned') {
           markerClass = 'marker-planned';
-          statusLabel = 'Planned Stop';
+          statusLabel = 'Upcoming Stop';
           tagClass = 'tag-planned';
+        } else if (pin.status === 'doginal') {
+          markerClass = 'marker-doginal';
+          statusLabel = 'Doginal Dog Stop';
+          tagClass = 'tag-doginal';
+          markerHtml = '<div class="marker-doginal-glow"></div><div class="marker-doginal-content">🐶</div>';
+          isDoginal = true;
         }
 
-        // Custom divIcon pulsing marker
+        // Custom divIcon pulsing marker (or pixelated dog icon)
         const marker = L.marker([pin.lat, pin.lng], {
           icon: L.divIcon({
             className: `custom-marker ${markerClass}`,
-            html: '<div class="marker-pin"></div><div class="marker-pulse"></div>',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
+            html: markerHtml,
+            iconSize: isDoginal ? [40, 40] : [30, 30],
+            iconAnchor: isDoginal ? [20, 20] : [15, 15]
           })
         });
 
@@ -1018,12 +1053,12 @@
       });
     }
 
-    // 2. Render Sidebar Location Checklist List
+    // 2. Render Sidebar Location checklist
     function renderSidebarPins() {
       pinsContainer.innerHTML = '';
 
       if (pinsList.length === 0) {
-        pinsContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1rem;">No pins added yet. Toggle Creator Mode to add one!</p>';
+        pinsContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem; border: 1px dashed rgba(255,255,255,0.05); border-radius:12px;">No pins added yet. Click on the map to add stops!</p>';
         return;
       }
 
@@ -1046,7 +1081,10 @@
           statusText = 'Completed Stop';
         } else if (pin.status === 'planned') {
           badgeClass = 'planned';
-          statusText = 'Planned Stop';
+          statusText = 'Upcoming Stop';
+        } else if (pin.status === 'doginal') {
+          badgeClass = 'doginal';
+          statusText = 'Doginal Dog Stop';
         }
 
         item.innerHTML = `
@@ -1134,93 +1172,49 @@
 
     // --- Event Listeners & Interactions ---
 
-    // 1. Creator Mode Toggle Button
-    creatorToggle.addEventListener('click', () => {
-      creatorModeActive = !creatorModeActive;
+    // 1. Map Click Event: Populates Creator Deck Form Inputs
+    map.on('click', (e) => {
+      const { lat, lng } = e.latlng;
       
-      if (creatorModeActive) {
-        creatorToggle.classList.add('active');
-        creatorToggle.querySelector('span').textContent = 'Creator Mode: ON';
-        creatorBanner.style.display = 'flex';
-      } else {
-        creatorToggle.classList.remove('active');
-        creatorToggle.querySelector('span').textContent = 'Creator Mode';
-        creatorBanner.style.display = 'none';
-        map.closePopup();
+      // Auto-populate form coordinates
+      creatorLatInput.value = lat.toFixed(6);
+      creatorLngInput.value = lng.toFixed(6);
+
+      // Scroll form card into view on mobile viewports
+      if (window.innerWidth < 1024) {
+        document.getElementById('creator-deck-card').scrollIntoView({ behavior: 'smooth' });
       }
     });
 
-    // 2. Map Clicks (To place pins when Creator Mode is ON)
-    map.on('click', (e) => {
-      if (!creatorModeActive) return;
+    // 2. Creator Control Deck Form Submission
+    creatorForm.addEventListener('submit', (e) => {
+      e.preventDefault();
 
-      const { lat, lng } = e.latlng;
+      const lat = parseFloat(creatorLatInput.value);
+      const lng = parseFloat(creatorLngInput.value);
+      const title = creatorTitleInput.value.trim();
+      const desc = creatorDescInput.value.trim();
+      const status = creatorStatusSelect.value;
 
-      // Create custom form element node to ensure event listeners work (CSP safe)
-      const formContainer = document.createElement('form');
-      formContainer.className = 'popup-form';
-      formContainer.id = 'map-creator-form';
-      formContainer.innerHTML = `
-        <h3>Add Trip Pin</h3>
-        <div class="form-group">
-          <label for="p-title">Location Title</label>
-          <input type="text" id="p-title" placeholder="e.g. Memphis BBQ Stop" required>
-        </div>
-        <div class="form-group">
-          <label for="p-desc">Narrative / Why</label>
-          <textarea id="p-desc" placeholder="Describe the stop or destination goal..." required></textarea>
-        </div>
-        <div class="form-group">
-          <label for="p-status">Status / Category</label>
-          <select id="p-status" required>
-            <option value="completed">Completed Adventure</option>
-            <option value="planned">Planned Stop</option>
-            <option value="suggestion">Viewer Suggestion</option>
-          </select>
-        </div>
-        <div class="popup-form-actions">
-          <button type="submit" class="btn btn-primary">Save Pin</button>
-          <button type="button" class="btn btn-secondary" id="p-cancel">Cancel</button>
-        </div>
-      `;
+      if (isNaN(lat) || isNaN(lng) || !title || !desc) return;
 
-      // Disable map propagation so clicks/scrolls in form do not trigger map actions
-      L.DomEvent.disableClickPropagation(formContainer);
-      L.DomEvent.disableScrollPropagation(formContainer);
+      // Add to tracking array
+      const newPin = { lat, lng, title, desc, status };
+      pinsList.push(newPin);
 
-      // Render form inside Leaflet popup
-      const popup = L.popup()
-        .setLatLng([lat, lng])
-        .setContent(formContainer)
-        .openOn(map);
+      // Save to localStorage immediately
+      localStorage.setItem('roadtrip_pins_v2', JSON.stringify(pinsList));
 
-      // Form Submit Handler
-      formContainer.addEventListener('submit', (evt) => {
-        evt.preventDefault();
-        
-        const title = formContainer.querySelector('#p-title').value.trim();
-        const desc = formContainer.querySelector('#p-desc').value.trim();
-        const status = formContainer.querySelector('#p-status').value;
+      // Re-render map and lists instantly
+      renderMapMarkers();
+      renderSidebarPins();
 
-        // Append new pin object
-        const newPin = { lat, lng, title, desc, status };
-        pinsList.push(newPin);
-        
-        // Save to LocalStorage
-        localStorage.setItem('roadtrip_pins', JSON.stringify(pinsList));
-        
-        // Redraw lists
-        renderMapMarkers();
-        renderSidebarPins();
-        
-        // Close popup
-        map.closePopup();
-      });
-
-      // Form Cancel Handler
-      formContainer.querySelector('#p-cancel').addEventListener('click', () => {
-        map.closePopup();
-      });
+      // Reset Form fields
+      creatorLatInput.value = '';
+      creatorLngInput.value = '';
+      creatorTitleInput.value = '';
+      creatorDescInput.value = '';
+      creatorStatusSelect.selectedIndex = 0;
     });
 
     // 3. Submit Community Viewer Request Form
@@ -1236,7 +1230,7 @@
       requestsList.unshift(newRequest); // Add new request to the top
 
       // Save to LocalStorage
-      localStorage.setItem('roadtrip_requests', JSON.stringify(requestsList));
+      localStorage.setItem('roadtrip_requests_v2', JSON.stringify(requestsList));
 
       // Re-render requests list
       renderRequests();
