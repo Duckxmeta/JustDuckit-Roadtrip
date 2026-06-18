@@ -30,6 +30,7 @@
       --color-planned: #10b981;     /* Emerald Green */
       --color-suggestion: #fbbf24;  /* Amber Yellow */
       --color-doginal: #f97316;     /* Orange */
+      --color-duck: #06b6d4;        /* Cyan / Water Blue */
       
       --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -398,6 +399,7 @@
     .pin-badge.planned { color: var(--color-planned); background-color: var(--color-planned); }
     .pin-badge.suggestion { color: var(--color-suggestion); background-color: var(--color-suggestion); }
     .pin-badge.doginal { color: var(--color-doginal); background-color: var(--color-doginal); }
+    .pin-badge.duck { color: var(--color-duck); background-color: var(--color-duck); }
 
     .pin-text {
       flex-grow: 1;
@@ -620,6 +622,52 @@
       }
     }
 
+    /* Custom Duck Pin Icon styles */
+    .marker-duck {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .marker-duck-content {
+      font-size: 1.6rem;
+      z-index: 3;
+      animation: duckWiggle 1s infinite alternate ease-in-out;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .marker-duck-glow {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2.5px solid var(--color-duck);
+      box-shadow: 0 0 14px var(--color-duck), inset 0 0 6px var(--color-duck);
+      background: rgba(6, 182, 212, 0.2);
+      animation: duckGlow 1.5s infinite alternate ease-in-out;
+      z-index: 1;
+    }
+
+    @keyframes duckWiggle {
+      0% { transform: rotate(-8deg) scale(0.95); }
+      100% { transform: rotate(8deg) scale(1.05); }
+    }
+
+    @keyframes duckGlow {
+      0% {
+        box-shadow: 0 0 8px rgba(6, 182, 212, 0.5), inset 0 0 4px rgba(6, 182, 212, 0.3);
+        transform: scale(0.9);
+      }
+      100% {
+        box-shadow: 0 0 20px rgba(6, 182, 212, 0.9), inset 0 0 10px rgba(6, 182, 212, 0.6);
+        transform: scale(1.15);
+      }
+    }
+
     /* Custom Popup Styles */
     .popup-detail {
       padding: 0.25rem;
@@ -658,6 +706,12 @@
       background-color: rgba(249, 115, 22, 0.15);
       color: var(--color-doginal);
       border: 1px solid rgba(249, 115, 22, 0.3);
+    }
+
+    .tag-duck {
+      background-color: rgba(6, 182, 212, 0.15);
+      color: var(--color-duck);
+      border: 1px solid rgba(6, 182, 212, 0.3);
     }
 
     .popup-title {
@@ -847,6 +901,7 @@
                 <option value="completed">🟣 Completed Stop</option>
                 <option value="suggestion">🟡 Viewer Suggestion</option>
                 <option value="doginal">🐶 Doginal Dog Stop</option>
+                <option value="duck">🦆 Duck Farm / Sanctuary Stop</option>
               </select>
             </div>
             
@@ -1011,7 +1066,7 @@
         let markerClass = 'marker-suggestion';
         let statusLabel = 'Viewer Suggestion';
         let tagClass = 'tag-suggestion';
-        let isDoginal = false;
+        let isLargeIcon = false;
         
         if (pin.status === 'completed') {
           markerClass = 'marker-completed';
@@ -1026,16 +1081,22 @@
           statusLabel = 'Doginal Dog Stop';
           tagClass = 'tag-doginal';
           markerHtml = '<div class="marker-doginal-glow"></div><div class="marker-doginal-content">🐶</div>';
-          isDoginal = true;
+          isLargeIcon = true;
+        } else if (pin.status === 'duck') {
+          markerClass = 'marker-duck';
+          statusLabel = 'Duck Farm / Sanctuary Stop';
+          tagClass = 'tag-duck';
+          markerHtml = '<div class="marker-duck-glow"></div><div class="marker-duck-content">🦆</div>';
+          isLargeIcon = true;
         }
 
-        // Custom divIcon pulsing marker (or pixelated dog icon)
+        // Custom divIcon pulsing marker (or pixelated dog/duck icon)
         const marker = L.marker([pin.lat, pin.lng], {
           icon: L.divIcon({
             className: `custom-marker ${markerClass}`,
             html: markerHtml,
-            iconSize: isDoginal ? [40, 40] : [30, 30],
-            iconAnchor: isDoginal ? [20, 20] : [15, 15]
+            iconSize: isLargeIcon ? [40, 40] : [30, 30],
+            iconAnchor: isLargeIcon ? [20, 20] : [15, 15]
           })
         });
 
@@ -1085,6 +1146,9 @@
         } else if (pin.status === 'doginal') {
           badgeClass = 'doginal';
           statusText = 'Doginal Dog Stop';
+        } else if (pin.status === 'duck') {
+          badgeClass = 'duck';
+          statusText = 'Duck Sanctuary Stop';
         }
 
         item.innerHTML = `
