@@ -14,6 +14,8 @@
   <!-- Leaflet CDN Headers -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Supabase CDN Header -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     /* Design Tokens */
@@ -734,6 +736,26 @@
       border: 1px solid var(--border-color);
     }
 
+    .viewer-suggestion-marker {
+      opacity: 0.55 !important;
+      transition: var(--transition-smooth);
+    }
+
+    .viewer-suggestion-marker:hover, .viewer-suggestion-marker:active {
+      opacity: 0.9 !important;
+    }
+
+    .tag-suggestion {
+      background-color: rgba(251, 191, 36, 0.15);
+      color: var(--color-suggestion);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+
+    .viewer-suggestion-item {
+      opacity: 0.75;
+      border-left: 3px solid var(--color-suggestion) !important;
+    }
+
     .popup-title {
       font-family: var(--font-heading);
       font-size: 1.1rem;
@@ -998,6 +1020,11 @@
                   <span class="quick-emoji-tap">⛽</span>
                 </div>
               </div>
+
+              <div class="form-group">
+                <label for="creator-key">Secret Key (Admin Only)</label>
+                <input type="password" id="creator-key" placeholder="Enter key for official pins" autocomplete="off">
+              </div>
               
               <button type="submit" class="btn btn-primary" style="width: 100%;">Save Pin</button>
             </form>
@@ -1109,6 +1136,12 @@
   </div>
 
   <script>
+    // --- Supabase Cloud Configuration ---
+    // Please replace with your actual Supabase URL and Anon Key:
+    const SUPABASE_URL = 'https://YOUR_SUPABASE_URL.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     // --- Clean Slate Data Setup ---
     const defaultPins = [];
 
@@ -1123,14 +1156,11 @@
       }
     ];
 
-    // Load state from LocalStorage
-    let pinsList = JSON.parse(localStorage.getItem('roadtrip_pins_v2')) || [...defaultPins];
+    // Load state
+    let pinsList = [];
     let requestsList = JSON.parse(localStorage.getItem('roadtrip_requests_v2')) || [...defaultRequests];
 
     // Save initial state to LocalStorage
-    if (!localStorage.getItem('roadtrip_pins_v2')) {
-      localStorage.setItem('roadtrip_pins_v2', JSON.stringify(pinsList));
-    }
     if (!localStorage.getItem('roadtrip_requests_v2')) {
       localStorage.setItem('roadtrip_requests_v2', JSON.stringify(requestsList));
     }
@@ -1211,12 +1241,16 @@
       pinsList.forEach((pin, index) => {
         const markerKey = `pin-${index}`;
         const emoji = pin.emoji || '📍';
+        const isOfficial = pin.is_official === true || pin.is_official === 'true';
         
         const markerHtml = `<div class="marker-emoji-glow"></div><div class="marker-emoji-content">${escapeHTML(emoji)}</div>`;
+        const markerClass = isOfficial ? 'custom-marker marker-emoji' : 'custom-marker marker-emoji viewer-suggestion-marker';
+        const tagText = isOfficial ? `${escapeHTML(emoji)} Roadtrip Stop` : `📣 Viewer Suggestion`;
+        const tagClass = isOfficial ? 'tag-generic' : 'tag-suggestion';
 
         const marker = L.marker([pin.lat, pin.lng], {
           icon: L.divIcon({
-            className: 'custom-marker marker-emoji',
+            className: markerClass,
             html: markerHtml,
             iconSize: [40, 40],
             iconAnchor: [20, 20]
@@ -1226,7 +1260,7 @@
         // Set Popup template content
         marker.bindPopup(`
           <div class="popup-detail">
-            <span class="popup-tag tag-generic">${escapeHTML(emoji)} Roadtrip Stop</span>
+            <span class="popup-tag ${tagClass}">${tagText}</span>
             <h4 class="popup-title">${escapeHTML(pin.title)}</h4>
             <p class="popup-desc">${escapeHTML(pin.desc)}</p>
           </div>
@@ -1248,9 +1282,10 @@
 
       pinsList.forEach((pin, index) => {
         const markerKey = `pin-${index}`;
+        const isOfficial = pin.is_official === true || pin.is_official === 'true';
         
         const item = document.createElement('div');
-        item.className = 'pin-item';
+        item.className = isOfficial ? 'pin-item' : 'pin-item viewer-suggestion-item';
         
         // Handle click event on the list item to focus map
         item.addEventListener('click', () => {
@@ -1260,11 +1295,12 @@
 
         const emoji = pin.emoji || '📍';
         const addressText = pin.address || 'Custom Coordinates';
+        const titlePrefix = isOfficial ? '' : '<span style="font-size: 0.65rem; color: var(--color-suggestion); font-weight: 800; margin-right: 0.45rem; text-transform: uppercase;">[Suggestion]</span>';
 
         item.innerHTML = `
           <div style="font-size: 1.6rem; margin-right: 0.75rem; flex-shrink: 0; user-select: none;">${escapeHTML(emoji)}</div>
           <div class="pin-text">
-            <h4>${escapeHTML(pin.title)}</h4>
+            <h4>${titlePrefix}${escapeHTML(pin.title)}</h4>
             <p>${escapeHTML(addressText)}</p>
           </div>
           <span class="pin-chevron">➔</span>
@@ -1347,9 +1383,42 @@
       );
     }
 
+    // --- Load pins from Supabase ---
+    async function loadPinsFromSupabase() {
+      // If credentials are still placeholders, skip Supabase fetch and load from localStorage
+      if (SUPABASE_URL.includes('YOUR_SUPABASE_URL') || SUPABASE_ANON_KEY.includes('YOUR_SUPABASE_ANON_KEY')) {
+        console.warn('Supabase URL/Key are default placeholders. Falling back to local storage.');
+        pinsList = JSON.parse(localStorage.getItem('roadtrip_pins_v2')) || [];
+        renderMapMarkers();
+        renderSidebarPins();
+        return;
+      }
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('roadtrip_pins')
+          .select('*')
+          .order('created_at', { ascending: true });
+        
+        if (error) throw error;
+        
+        pinsList = data || [];
+        // Sync to localStorage as local cache
+        localStorage.setItem('roadtrip_pins_v2', JSON.stringify(pinsList));
+        renderMapMarkers();
+        renderSidebarPins();
+      } catch (err) {
+        console.error('Error fetching pins from Supabase:', err);
+        // Fallback to local storage if supabase fails
+        pinsList = JSON.parse(localStorage.getItem('roadtrip_pins_v2')) || [];
+        renderMapMarkers();
+        renderSidebarPins();
+      }
+    }
+
     // --- Event Listeners & Interactions ---
 
-    // 1. Creator Control Deck Form Submission with Nominatim Geocoding
+    // 1. Creator Control Deck Form Submission with Nominatim Geocoding & Supabase Insert
     creatorForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -1357,6 +1426,8 @@
       const title = creatorTitleInput.value.trim();
       const desc = creatorDescInput.value.trim();
       const emoji = creatorEmojiInput.value.trim() || '📍';
+      const passwordInput = document.getElementById('creator-key');
+      const password = passwordInput ? passwordInput.value.trim() : '';
 
       if (!address || !title || !desc) return;
 
@@ -1389,28 +1460,55 @@
         const lat = parseFloat(data[0].lat);
         const lng = parseFloat(data[0].lon);
 
-        // Add to tracking array
-        const newPin = { lat, lng, title, desc, emoji, address };
-        pinsList.push(newPin);
+        const isOfficial = (password === 'Duckit2026');
+        const newPinPayload = {
+          lat,
+          lng,
+          title,
+          desc,
+          emoji,
+          address,
+          is_official: isOfficial
+        };
 
-        // Save to localStorage immediately
-        localStorage.setItem('roadtrip_pins_v2', JSON.stringify(pinsList));
+        // Try inserting into Supabase
+        if (!SUPABASE_URL.includes('YOUR_SUPABASE_URL') && !SUPABASE_ANON_KEY.includes('YOUR_SUPABASE_ANON_KEY')) {
+          submitBtn.textContent = 'Saving Stop...';
+          const { error } = await supabaseClient
+            .from('roadtrip_pins')
+            .insert([newPinPayload]);
 
-        // Re-render map and lists instantly
-        renderMapMarkers();
-        renderSidebarPins();
+          if (error) {
+            console.error('Supabase insert error:', error);
+            alert('Failed to save to cloud database: ' + error.message);
+          } else {
+            showToastAlert(isOfficial ? 'Official pin saved to cloud! 🦆' : 'Viewer suggestion saved to cloud! 📣');
+          }
+        } else {
+          // Fallback simulation when keys are default placeholders
+          console.warn('Using placeholder Supabase config. Simulating local save.');
+          pinsList.push({ ...newPinPayload, id: 'local-' + Date.now(), created_at: new Date().toISOString() });
+          localStorage.setItem('roadtrip_pins_v2', JSON.stringify(pinsList));
+          showToastAlert(isOfficial ? 'Official pin simulated locally! 🦆' : 'Viewer suggestion simulated locally! 📣');
+        }
+
+        // Reload data from backend (or locally if simulated)
+        await loadPinsFromSupabase();
 
         // Close bottom drawer on mobile before fly-to
         closeBottomSheet();
 
-        // Focus map on the new location
-        focusLocation([lat, lng], 8, `pin-${pinsList.length - 1}`);
+        // Find the newly created pin in the updated list and focus it
+        const newIndex = pinsList.findIndex(p => p.lat === lat && p.lng === lng);
+        const markerKey = newIndex !== -1 ? `pin-${newIndex}` : `pin-${pinsList.length - 1}`;
+        focusLocation([lat, lng], 8, markerKey);
 
         // Reset Form fields
         creatorAddressInput.value = '';
         creatorTitleInput.value = '';
         creatorDescInput.value = '';
         creatorEmojiInput.value = '📍';
+        if (passwordInput) passwordInput.value = '';
 
       } catch (err) {
         console.error(err);
@@ -1498,8 +1596,7 @@
     });
 
     // --- On Application Startup ---
-    renderMapMarkers();
-    renderSidebarPins();
+    loadPinsFromSupabase();
     renderRequests();
   </script>
 </body>
