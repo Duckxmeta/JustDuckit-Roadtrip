@@ -517,51 +517,136 @@
 
     /* Support "Fuel the Journey" Card */
     .support-card {
-      background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%), var(--bg-card);
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%), var(--bg-card);
       border: 1px solid rgba(168, 85, 247, 0.2);
     }
 
-    .support-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    .support-actions {
+      display: flex;
+      flex-direction: column;
       gap: 0.75rem;
     }
 
     .support-btn {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       font-weight: 700;
-      border-radius: 10px;
+      border-radius: 12px;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 0.4rem;
       padding: 0.75rem;
-      color: #fff;
-      transition: var(--transition-smooth);
       min-height: 48px;
+      transition: var(--transition-smooth);
     }
 
-    .support-btn-gallon {
-      background: rgba(168, 85, 247, 0.2);
-      border: 1px solid rgba(168, 85, 247, 0.4);
+    .paypal-btn {
+      background: #003087;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 4px 14px rgba(0, 48, 135, 0.4);
     }
 
-    .support-btn-gallon:hover {
-      background: rgba(168, 85, 247, 0.3);
+    .paypal-btn:hover {
+      background: #0045c3;
+      box-shadow: 0 6px 20px rgba(0, 48, 135, 0.5);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
     }
 
-    .support-btn-patreon {
-      background: rgba(249, 115, 22, 0.2);
-      border: 1px solid rgba(249, 115, 22, 0.4);
+    .crypto-container {
+      background: rgba(7, 10, 19, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
     }
 
-    .support-btn-patreon:hover {
-      background: rgba(249, 115, 22, 0.3);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+    .crypto-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+    }
+
+    .crypto-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      padding: 0.35rem 0.5rem;
+    }
+
+    .crypto-label-badge {
+      font-family: var(--font-heading);
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 0.25rem 0.45rem;
+      border-radius: 6px;
+      text-align: center;
+      min-width: 42px;
+    }
+
+    .sol-badge {
+      background: rgba(20, 241, 149, 0.1);
+      color: #14f195;
+      border: 1px solid rgba(20, 241, 149, 0.25);
+    }
+
+    .eth-badge {
+      background: rgba(98, 126, 234, 0.1);
+      color: #627eea;
+      border: 1px solid rgba(98, 126, 234, 0.25);
+    }
+
+    .crypto-address-input {
+      flex-grow: 1;
+      background: transparent !important;
+      border: none !important;
+      color: var(--text-muted) !important;
+      font-family: monospace;
+      font-size: 0.75rem !important;
+      padding: 0 !important;
+      min-height: auto !important;
+      cursor: default;
+      user-select: all;
+      outline: none;
+      box-shadow: none !important;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .crypto-copy-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      white-space: nowrap;
+      min-height: auto !important;
+    }
+
+    .crypto-copy-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-focus);
+    }
+
+    .crypto-copy-btn.copied {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border-color: rgba(16, 185, 129, 0.3);
     }
 
     /* Custom Universal Emoji Marker styles */
@@ -870,13 +955,41 @@
             <h3 class="card-title">Fuel the Journey ⛽</h3>
             <p class="card-desc">Support the road trip and keep the rig rollin'. Help us hit the next state line!</p>
           </div>
-          <div class="support-grid">
-            <a href="https://ko-fi.com" target="_blank" rel="noopener" class="support-btn support-btn-gallon">
-              <span>☕ Buy Us a Gallon</span>
+          
+          <div class="support-actions">
+            <!-- PayPal Button -->
+            <a href="https://www.paypal.com/donate/?hosted_button_id=RG9T939ERXZB8&utm_source=ig&utm_medium=social&utm_content=link_in_bio" target="_blank" rel="noopener noreferrer" class="support-btn paypal-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 6px;">
+                <path d="M20.02 6.84c.15-.72-.08-1.57-.67-2.3C18.66 3.65 17.2 3.1 15 3.1h-7.8c-.5 0-.9.3-.9.9L4.12 19.3c0 .3.2.6.5.6h4.3l1.1-6.8v.1c.1-.6.6-.9 1.1-.9h2.3c3.4 0 5.8-1.7 6.6-5.5z"/>
+              </svg>
+              <span>Donate with PayPal</span>
             </a>
-            <a href="https://patreon.com/JustDuckit?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink" target="_blank" rel="noopener noreferrer" class="support-btn support-btn-patreon">
-              <span>👑 Join the Roadtrip Crew</span>
-            </a>
+            
+            <!-- Crypto Wallets -->
+            <div class="crypto-container">
+              <div class="crypto-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/>
+                  <line x1="12" y1="10" x2="12" y2="14"/>
+                  <line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+                <span>Support with Crypto</span>
+              </div>
+              
+              <!-- SOL Address -->
+              <div class="crypto-row">
+                <div class="crypto-label-badge sol-badge">SOL</div>
+                <input type="text" class="crypto-address-input" value="CwZDNu744EPtZzDNvhdgrxFJmKq9GHygZHQb6z4ToD6n" readonly>
+                <button type="button" class="crypto-copy-btn" data-copy-val="CwZDNu744EPtZzDNvhdgrxFJmKq9GHygZHQb6z4ToD6n">📋 Copy</button>
+              </div>
+              
+              <!-- ETH Address -->
+              <div class="crypto-row">
+                <div class="crypto-label-badge eth-badge">ETH</div>
+                <input type="text" class="crypto-address-input" value="0x3556b3cb078F4F4dEf4e8a697a3CBC64b07E49b0" readonly>
+                <button type="button" class="crypto-copy-btn" data-copy-val="0x3556b3cb078F4F4dEf4e8a697a3CBC64b07E49b0">📋 Copy</button>
+              </div>
+            </div>
           </div>
         </section>
       </aside>
@@ -1242,6 +1355,25 @@
       if (e.target.classList.contains('quick-emoji-tap')) {
         creatorEmojiInput.value = e.target.textContent;
       }
+    });
+
+    // Crypto copy button handlers
+    const cryptoContainer = document.querySelector('.crypto-container');
+    cryptoContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.crypto-copy-btn');
+      if (!btn) return;
+      
+      const copyVal = btn.getAttribute('data-copy-val');
+      navigator.clipboard.writeText(copyVal).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'Copied!';
+        btn.classList.add('copied');
+        
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
     });
 
     // --- On Application Startup ---
