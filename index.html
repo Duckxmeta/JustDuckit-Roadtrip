@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JustDuckit Roadtrip Tracker 🦆</title>
+  
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CDN Headers -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    /* Design Tokens */
+    :root {
+      --bg-dark: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.7);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      
+      --color-route-stop: #f59e0b;   /* Amber */
+      --color-request: #3b82f6;      /* Blue */
+      --color-support: #10b981;      /* Emerald */
+      
+      --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Reset and Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    /* Container & Layout */
+    .dashboard-container {
+      width: 100%;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      flex-grow: 1;
+    }
+
+    /* App Header */
+    .app-header {
+      background: radial-gradient(100% 100% at 0% 0%, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.25rem 1.5rem;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-emoji {
+      font-size: 2rem;
+      animation: waddle 2s infinite ease-in-out alternate;
+      display: inline-block;
+    }
+
+    @keyframes waddle {
+      0% { transform: rotate(-8deg) translateY(0); }
+      100% { transform: rotate(8deg) translateY(-2px); }
+    }
+
+    .app-header h1 {
+      font-family: var(--font-heading);
+      font-size: 1.75rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 30%, #f59e0b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+    }
+
+    .app-header .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 400;
+    }
+
+    /* Main Grid Layout */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      flex-grow: 1;
+    }
+
+    @media (min-width: 992px) {
+      .main-layout {
+        grid-template-columns: 350px 1fr;
+      }
+    }
+
+    /* Glass Sidebar Card */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      height: 100%;
+    }
+
+    .card h3 {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .card-desc {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: -0.75rem;
+    }
+
+    /* Stop List Items */
+    .stops-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .stop-item {
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .stop-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    .status-indicator.route-stop {
+      color: var(--color-route-stop);
+      background-color: var(--color-route-stop);
+    }
+
+    .status-indicator.request-pin {
+      color: var(--color-request);
+      background-color: var(--color-request);
+    }
+
+    .status-indicator.support-zone {
+      color: var(--color-support);
+      background-color: var(--color-support);
+    }
+
+    .stop-info {
+      flex-grow: 1;
+    }
+
+    .stop-info h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .stop-info p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .chevron {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      transition: var(--transition-smooth);
+    }
+
+    .stop-item:hover .chevron {
+      color: var(--text-main);
+      transform: translateX(3px);
+    }
+
+    /* Stats Panel */
+    .stats-panel {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-top: auto;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1.25rem;
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.3);
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+    }
+
+    .stat-val {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .stat-lbl {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.15rem;
+    }
+
+    /* Interactive Map Element */
+    .map-container {
+      position: relative;
+      width: 100%;
+    }
+
+    #map {
+      width: 100%;
+      height: 70vh; /* Default Mobile height */
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      z-index: 1;
+    }
+
+    @media (min-width: 992px) {
+      #map {
+        height: 85vh; /* Desktop Height */
+      }
+    }
+
+    /* Custom Leaflet Map Styling Override */
+    .leaflet-container {
+      background: #0d121f !important;
+      font-family: var(--font-body) !important;
+    }
+
+    /* Custom Popup Styles */
+    .leaflet-popup-content-wrapper {
+      background: rgba(15, 23, 42, 0.95) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border: 1px solid var(--border-color) !important;
+      color: var(--text-main) !important;
+      border-radius: 12px !important;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+      padding: 0.5rem !important;
+    }
+
+    .leaflet-popup-tip {
+      background: rgba(15, 23, 42, 0.95) !important;
+      border-bottom: 1px solid var(--border-color) !important;
+      border-right: 1px solid var(--border-color) !important;
+    }
+
+    .popup-content {
+      padding: 0.25rem;
+    }
+
+    .popup-tag {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+
+    .tag-stop {
+      background-color: rgba(245, 158, 11, 0.15);
+      color: var(--color-route-stop);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .tag-request {
+      background-color: rgba(59, 130, 246, 0.15);
+      color: var(--color-request);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .tag-support {
+      background-color: rgba(16, 185, 129, 0.15);
+      color: var(--color-support);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .popup-title {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      color: #fff;
+    }
+
+    .popup-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Custom Leaflet Marker Pins (DivIcon) */
+    .custom-marker {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .marker-pin {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background-color: var(--marker-color);
+      border: 2px solid #fff;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+      z-index: 2;
+    }
+
+    .marker-pulse {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: var(--marker-color);
+      opacity: 0.4;
+      animation: markerPulse 2s infinite ease-out;
+      z-index: 1;
+    }
+
+    @keyframes markerPulse {
+      0% {
+        transform: scale(0.5);
+        opacity: 0.8;
+      }
+      100% {
+        transform: scale(2.2);
+        opacity: 0;
+      }
+    }
+
+    .marker-route-stop { --marker-color: var(--color-route-stop); }
+    .marker-request { --marker-color: var(--color-request); }
+    .marker-support { --marker-color: var(--color-support); }
+
+    /* Custom attribution styling */
+    .leaflet-control-attribution {
+      background: rgba(15, 23, 42, 0.75) !important;
+      backdrop-filter: blur(8px);
+      color: var(--text-muted) !important;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+    .leaflet-control-attribution a {
+      color: var(--color-request) !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <header class="app-header">
+      <div class="header-top">
+        <span class="logo-emoji">🦆</span>
+        <h1>JustDuckit Roadtrip</h1>
+      </div>
+      <p class="subtitle">Crowdsourced Live Tracker & Community Support Map</p>
+    </header>
+    
+    <div class="main-layout">
+      <aside class="sidebar">
+        <div class="card">
+          <div>
+            <h3>Trip Dashboard</h3>
+            <p class="card-desc">Interact with the locations below to center the tracker</p>
+          </div>
+          
+          <div class="stops-list">
+            <!-- Nashville Stop -->
+            <div class="stop-item" onclick="focusLocation([36.1627, -86.7816], 8, 'marker-nashville')">
+              <div class="status-indicator route-stop"></div>
+              <div class="stop-info">
+                <h4>Nashville, TN</h4>
+                <p>Current Route Stop</p>
+              </div>
+              <span class="chevron">➔</span>
+            </div>
+            
+            <!-- Memphis Request -->
+            <div class="stop-item" onclick="focusLocation([35.1495, -90.0490], 8, 'marker-memphis')">
+              <div class="status-indicator request-pin"></div>
+              <div class="stop-info">
+                <h4>Memphis, TN</h4>
+                <p>Community Request Pin</p>
+              </div>
+              <span class="chevron">➔</span>
+            </div>
+            
+            <!-- Knoxville Support -->
+            <div class="stop-item" onclick="focusLocation([35.9606, -83.9207], 8, 'marker-knoxville')">
+              <div class="status-indicator support-zone"></div>
+              <div class="stop-info">
+                <h4>Knoxville, TN</h4>
+                <p>Support Zone</p>
+              </div>
+              <span class="chevron">➔</span>
+            </div>
+          </div>
+
+          <div class="stats-panel">
+            <div class="stat-box">
+              <span class="stat-val">1</span>
+              <span class="stat-lbl">Active Stops</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-val">1</span>
+              <span class="stat-lbl">Requests</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-val">1</span>
+              <span class="stat-lbl">Support Zones</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="map-container">
+        <div id="map"></div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Initialize the Leaflet map centered on the United States
+    const map = L.map('map', {
+      zoomControl: true,
+      scrollWheelZoom: true
+    }).setView([37.0902, -95.7129], 4);
+
+    // Load the free OpenStreetMap tile layer (dark theme-friendly CartoDB Voyager tiles)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
+
+    // Setup marker groups and references
+    const markerStore = {};
+
+    // 1. Current Route Stop: Nashville, TN
+    const nashvilleMarker = L.marker([36.1627, -86.7816], {
+      icon: L.divIcon({
+        className: 'custom-marker marker-route-stop',
+        html: '<div class="marker-pin"></div><div class="marker-pulse"></div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      })
+    }).addTo(map);
+
+    nashvilleMarker.bindPopup(`
+      <div class="popup-content">
+        <span class="popup-tag tag-stop">Current Route Stop</span>
+        <h4 class="popup-title">Nashville, TN</h4>
+        <p class="popup-desc">The crew is currently refueling and setting up for the Music City meet-up. Drop by to say hi!</p>
+      </div>
+    `);
+    markerStore['marker-nashville'] = nashvilleMarker;
+
+    // 2. Community Request Pin: Memphis, TN
+    const memphisMarker = L.marker([35.1495, -90.0490], {
+      icon: L.divIcon({
+        className: 'custom-marker marker-request',
+        html: '<div class="marker-pin"></div><div class="marker-pulse"></div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      })
+    }).addTo(map);
+
+    memphisMarker.bindPopup(`
+      <div class="popup-content">
+        <span class="popup-tag tag-request">Community Request Pin</span>
+        <h4 class="popup-title">Memphis, TN</h4>
+        <p class="popup-desc">Requested by @MemphisDucks: "Please bring the crew down Beale Street for a duck parade!"</p>
+      </div>
+    `);
+    markerStore['marker-memphis'] = memphisMarker;
+
+    // 3. Support Zone: Knoxville, TN
+    const knoxvilleMarker = L.marker([35.9606, -83.9207], {
+      icon: L.divIcon({
+        className: 'custom-marker marker-support',
+        html: '<div class="marker-pin"></div><div class="marker-pulse"></div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      })
+    }).addTo(map);
+
+    knoxvilleMarker.bindPopup(`
+      <div class="popup-content">
+        <span class="popup-tag tag-support">Support Zone</span>
+        <h4 class="popup-title">Knoxville, TN</h4>
+        <p class="popup-desc">Hosted by Tennessee Duck Union. Offers free charging, vehicle checks, and snacks for team members.</p>
+      </div>
+    `);
+    markerStore['marker-knoxville'] = knoxvilleMarker;
+
+    // Interactive focus helper function
+    function focusLocation(coords, zoomLevel, markerKey) {
+      map.flyTo(coords, zoomLevel, {
+        animate: true,
+        duration: 1.5
+      });
+      
+      // Auto open popup after flyTo finishes
+      setTimeout(() => {
+        if (markerStore[markerKey]) {
+          markerStore[markerKey].openPopup();
+        }
+      }, 1500);
+    }
+  </script>
+</body>
+</html>
