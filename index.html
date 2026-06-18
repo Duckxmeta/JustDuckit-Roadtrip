@@ -1042,6 +1042,18 @@
             </div>
           </section>
 
+          <!-- Card 2.5: Community Suggestions Queue -->
+          <section class="card">
+            <div>
+              <h3 class="card-title">💡 Community Suggestions</h3>
+              <p class="card-desc">Viewer suggested stops and warning pins. Click to pan & zoom.</p>
+            </div>
+            
+            <div class="pins-scroll-area" id="suggestions-list-container" style="max-height: 250px; overflow-y: auto;">
+              <!-- Populated via Javascript -->
+            </div>
+          </section>
+
           <!-- Card 3: Community Request Form -->
           <section class="card">
             <div>
@@ -1271,21 +1283,23 @@
       });
     }
 
-    // 2. Render Sidebar Location checklist
+    // 2. Render Sidebar Location checklist (Official pins only)
     function renderSidebarPins() {
       pinsContainer.innerHTML = '';
 
-      if (pinsList.length === 0) {
-        pinsContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem; border: 1px dashed rgba(255,255,255,0.05); border-radius:12px;">No pins added yet. Enter an address in the form to add stops!</p>';
+      const officialPins = pinsList.filter(pin => pin.is_official === true || pin.is_official === 'true');
+
+      if (officialPins.length === 0) {
+        pinsContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem; border: 1px dashed rgba(255,255,255,0.05); border-radius:12px;">No official pins added yet. Enter an address in the form with your admin key to add stops!</p>';
         return;
       }
 
-      pinsList.forEach((pin, index) => {
-        const markerKey = `pin-${index}`;
-        const isOfficial = pin.is_official === true || pin.is_official === 'true';
+      officialPins.forEach((pin) => {
+        const originalIndex = pinsList.indexOf(pin);
+        const markerKey = `pin-${originalIndex}`;
         
         const item = document.createElement('div');
-        item.className = isOfficial ? 'pin-item' : 'pin-item viewer-suggestion-item';
+        item.className = 'pin-item';
         
         // Handle click event on the list item to focus map
         item.addEventListener('click', () => {
@@ -1295,17 +1309,66 @@
 
         const emoji = pin.emoji || '📍';
         const addressText = pin.address || 'Custom Coordinates';
-        const titlePrefix = isOfficial ? '' : '<span style="font-size: 0.65rem; color: var(--color-suggestion); font-weight: 800; margin-right: 0.45rem; text-transform: uppercase;">[Suggestion]</span>';
 
         item.innerHTML = `
           <div style="font-size: 1.6rem; margin-right: 0.75rem; flex-shrink: 0; user-select: none;">${escapeHTML(emoji)}</div>
           <div class="pin-text">
-            <h4>${titlePrefix}${escapeHTML(pin.title)}</h4>
+            <h4>${escapeHTML(pin.title)}</h4>
             <p>${escapeHTML(addressText)}</p>
           </div>
           <span class="pin-chevron">➔</span>
         `;
         pinsContainer.appendChild(item);
+      });
+    }
+
+    // 2.5. Render Community Suggestions list (Suggestions only)
+    function renderCommunitySuggestions() {
+      const suggestionsContainer = document.getElementById('suggestions-list-container');
+      if (!suggestionsContainer) return;
+
+      suggestionsContainer.innerHTML = '';
+
+      const suggestions = pinsList.filter(pin => !(pin.is_official === true || pin.is_official === 'true'));
+
+      if (suggestions.length === 0) {
+        suggestionsContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem; border: 1px dashed rgba(255,255,255,0.05); border-radius:12px;">No community requests yet. Tap the map to drop the first suggestion!</p>';
+        return;
+      }
+
+      suggestions.forEach((pin) => {
+        const originalIndex = pinsList.indexOf(pin);
+        const markerKey = `pin-${originalIndex}`;
+        
+        const item = document.createElement('div');
+        item.className = 'pin-item viewer-suggestion-item';
+        
+        // Handle click event: smooth-pan, zoom, and pop open the bubble
+        item.addEventListener('click', () => {
+          closeBottomSheet();
+          map.setView([pin.lat, pin.lng], 10, { animate: true });
+          
+          setTimeout(() => {
+            if (markerStore[markerKey]) {
+              markerStore[markerKey].openPopup();
+            }
+          }, 800);
+        });
+
+        const emoji = pin.emoji || '📍';
+        const addressText = pin.address || 'Custom Coordinates';
+        const descPreview = pin.desc && pin.desc.length > 50 ? pin.desc.substring(0, 50) + '...' : (pin.desc || '');
+
+        item.innerHTML = `
+          <div style="font-size: 1.6rem; margin-right: 0.75rem; flex-shrink: 0; user-select: none;">${escapeHTML(emoji)}</div>
+          <div class="pin-text">
+            <h4>${escapeHTML(pin.title)}</h4>
+            <p style="margin-bottom: 0.15rem;">${escapeHTML(addressText)}</p>
+            <p style="font-size: 0.75rem; color: var(--text-muted); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(descPreview)}</p>
+          </div>
+          <span class="pin-chevron">➔</span>
+        `;
+        suggestionsContainer.appendChild(item);
       });
     }
 
@@ -1391,6 +1454,7 @@
         pinsList = JSON.parse(localStorage.getItem('roadtrip_pins_v2')) || [];
         renderMapMarkers();
         renderSidebarPins();
+        renderCommunitySuggestions();
         return;
       }
 
@@ -1407,12 +1471,14 @@
         localStorage.setItem('roadtrip_pins_v2', JSON.stringify(pinsList));
         renderMapMarkers();
         renderSidebarPins();
+        renderCommunitySuggestions();
       } catch (err) {
         console.error('Error fetching pins from Supabase:', err);
         // Fallback to local storage if supabase fails
         pinsList = JSON.parse(localStorage.getItem('roadtrip_pins_v2')) || [];
         renderMapMarkers();
         renderSidebarPins();
+        renderCommunitySuggestions();
       }
     }
 
