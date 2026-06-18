@@ -345,10 +345,36 @@
       box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
     }
 
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
+    .quick-emojis-container {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 0.4rem 0;
+      scrollbar-width: none;
+      margin-top: 0.25rem;
+    }
+    .quick-emojis-container::-webkit-scrollbar {
+      display: none;
+    }
+    .quick-emoji-tap {
+      font-size: 1.35rem;
+      cursor: pointer;
+      padding: 0.35rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      transition: var(--transition-smooth);
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 38px;
+      min-height: 38px;
+    }
+    .quick-emoji-tap:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-focus);
+      transform: translateY(-1px);
     }
 
     /* Location Pin List in Sidebar */
@@ -538,7 +564,7 @@
       box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
     }
 
-    /* Custom Leaflet Marker Pins */
+    /* Custom Universal Emoji Marker styles */
     .custom-marker {
       display: flex;
       align-items: center;
@@ -546,126 +572,44 @@
       position: relative;
     }
 
-    .marker-pin {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background-color: var(--marker-color);
-      border: 2px solid #fff;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
-      z-index: 2;
-    }
-
-    .marker-pulse {
-      position: absolute;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background-color: var(--marker-color);
-      opacity: 0.45;
-      animation: markerPulse 2.2s infinite ease-out;
-      z-index: 1;
-    }
-
-    @keyframes markerPulse {
-      0% { transform: scale(0.5); opacity: 0.9; }
-      100% { transform: scale(2.2); opacity: 0; }
-    }
-
-    .marker-completed { --marker-color: var(--color-completed); }
-    .marker-planned { --marker-color: var(--color-planned); }
-    .marker-suggestion { --marker-color: var(--color-suggestion); }
-
-    /* Custom Doginal Pixelated Dog Pin Icon styles */
-    .marker-doginal {
+    .marker-emoji {
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
     }
 
-    .marker-doginal-content {
-      font-size: 1.6rem;
+    .marker-emoji-content {
+      font-size: 1.5rem;
       z-index: 3;
-      animation: dogWiggle 1s infinite alternate ease-in-out;
+      animation: emojiWiggle 1.2s infinite alternate ease-in-out;
       user-select: none;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .marker-doginal-glow {
+    .marker-emoji-glow {
       position: absolute;
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      border: 2.5px solid var(--color-doginal);
-      box-shadow: 0 0 14px var(--color-doginal), inset 0 0 6px var(--color-doginal);
-      background: rgba(249, 115, 22, 0.2);
-      animation: dogGlow 1.5s infinite alternate ease-in-out;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 10px rgba(168, 85, 247, 0.15);
+      background: rgba(15, 23, 42, 0.85);
       z-index: 1;
+      transition: var(--transition-smooth);
     }
 
-    @keyframes dogWiggle {
+    .custom-marker:hover .marker-emoji-glow {
+      border-color: var(--border-focus);
+      box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4), 0 0 20px rgba(168, 85, 247, 0.3);
+      transform: scale(1.15);
+    }
+
+    @keyframes emojiWiggle {
       0% { transform: rotate(-5deg) scale(0.95); }
       100% { transform: rotate(5deg) scale(1.05); }
-    }
-
-    @keyframes dogGlow {
-      0% {
-        box-shadow: 0 0 8px rgba(249, 115, 22, 0.5), inset 0 0 4px rgba(249, 115, 22, 0.3);
-        transform: scale(0.9);
-      }
-      100% {
-        box-shadow: 0 0 20px rgba(249, 115, 22, 0.9), inset 0 0 10px rgba(249, 115, 22, 0.6);
-        transform: scale(1.15);
-      }
-    }
-
-    /* Custom Duck Pin Icon styles */
-    .marker-duck {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    .marker-duck-content {
-      font-size: 1.6rem;
-      z-index: 3;
-      animation: duckWiggle 1s infinite alternate ease-in-out;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .marker-duck-glow {
-      position: absolute;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      border: 2.5px solid var(--color-duck);
-      box-shadow: 0 0 14px var(--color-duck), inset 0 0 6px var(--color-duck);
-      background: rgba(6, 182, 212, 0.2);
-      animation: duckGlow 1.5s infinite alternate ease-in-out;
-      z-index: 1;
-    }
-
-    @keyframes duckWiggle {
-      0% { transform: rotate(-8deg) scale(0.95); }
-      100% { transform: rotate(8deg) scale(1.05); }
-    }
-
-    @keyframes duckGlow {
-      0% {
-        box-shadow: 0 0 8px rgba(6, 182, 212, 0.5), inset 0 0 4px rgba(6, 182, 212, 0.3);
-        transform: scale(0.9);
-      }
-      100% {
-        box-shadow: 0 0 20px rgba(6, 182, 212, 0.9), inset 0 0 10px rgba(6, 182, 212, 0.6);
-        transform: scale(1.15);
-      }
     }
 
     /* Custom Popup Styles */
@@ -684,34 +628,10 @@
       margin-bottom: 0.5rem;
     }
 
-    .tag-completed {
-      background-color: rgba(168, 85, 247, 0.15);
-      color: var(--color-completed);
-      border: 1px solid rgba(168, 85, 247, 0.3);
-    }
-
-    .tag-planned {
-      background-color: rgba(16, 185, 129, 0.15);
-      color: var(--color-planned);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-
-    .tag-suggestion {
-      background-color: rgba(251, 191, 36, 0.15);
-      color: var(--color-suggestion);
-      border: 1px solid rgba(251, 191, 36, 0.3);
-    }
-
-    .tag-doginal {
-      background-color: rgba(249, 115, 22, 0.15);
-      color: var(--color-doginal);
-      border: 1px solid rgba(249, 115, 22, 0.3);
-    }
-
-    .tag-duck {
-      background-color: rgba(6, 182, 212, 0.15);
-      color: var(--color-duck);
-      border: 1px solid rgba(6, 182, 212, 0.3);
+    .tag-generic {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
     }
 
     .popup-title {
@@ -889,14 +809,19 @@
             </div>
             
             <div class="form-group">
-              <label for="creator-status">Pin Type</label>
-              <select id="creator-status" required>
-                <option value="planned">🟢 Upcoming Stop</option>
-                <option value="completed">🟣 Completed Stop</option>
-                <option value="suggestion">🟡 Viewer Suggestion</option>
-                <option value="doginal">🐶 Doginal Dog Stop</option>
-                <option value="duck">🦆 Duck Farm / Sanctuary Stop</option>
-              </select>
+              <label for="creator-emoji">Pin Emoji</label>
+              <input type="text" id="creator-emoji" placeholder="Type or paste an emoji (e.g. 📍)" maxlength="5" required value="📍">
+              <div class="quick-emojis-container" id="quick-emojis">
+                <span class="quick-emoji-tap">📍</span>
+                <span class="quick-emoji-tap">🟣</span>
+                <span class="quick-emoji-tap">🟢</span>
+                <span class="quick-emoji-tap">🐶</span>
+                <span class="quick-emoji-tap">🦆</span>
+                <span class="quick-emoji-tap">⛺</span>
+                <span class="quick-emoji-tap">🚜</span>
+                <span class="quick-emoji-tap">🍔</span>
+                <span class="quick-emoji-tap">⛽</span>
+              </div>
             </div>
             
             <button type="submit" class="btn btn-primary" style="width: 100%;">Save Pin</button>
@@ -1029,7 +954,7 @@
     const creatorAddressInput = document.getElementById('creator-address');
     const creatorTitleInput = document.getElementById('creator-title');
     const creatorDescInput = document.getElementById('creator-desc');
-    const creatorStatusSelect = document.getElementById('creator-status');
+    const creatorEmojiInput = document.getElementById('creator-emoji');
 
     const requestForm = document.getElementById('community-request-form');
     const requestCityInput = document.getElementById('request-city');
@@ -1054,49 +979,23 @@
 
       pinsList.forEach((pin, index) => {
         const markerKey = `pin-${index}`;
+        const emoji = pin.emoji || '📍';
         
-        let markerHtml = '<div class="marker-pin"></div><div class="marker-pulse"></div>';
-        let markerClass = 'marker-suggestion';
-        let statusLabel = 'Viewer Suggestion';
-        let tagClass = 'tag-suggestion';
-        let isLargeIcon = false;
-        
-        if (pin.status === 'completed') {
-          markerClass = 'marker-completed';
-          statusLabel = 'Completed Stop';
-          tagClass = 'tag-completed';
-        } else if (pin.status === 'planned') {
-          markerClass = 'marker-planned';
-          statusLabel = 'Upcoming Stop';
-          tagClass = 'tag-planned';
-        } else if (pin.status === 'doginal') {
-          markerClass = 'marker-doginal';
-          statusLabel = 'Doginal Dog Stop';
-          tagClass = 'tag-doginal';
-          markerHtml = '<div class="marker-doginal-glow"></div><div class="marker-doginal-content">🐶</div>';
-          isLargeIcon = true;
-        } else if (pin.status === 'duck') {
-          markerClass = 'marker-duck';
-          statusLabel = 'Duck Farm / Sanctuary Stop';
-          tagClass = 'tag-duck';
-          markerHtml = '<div class="marker-duck-glow"></div><div class="marker-duck-content">🦆</div>';
-          isLargeIcon = true;
-        }
+        const markerHtml = `<div class="marker-emoji-glow"></div><div class="marker-emoji-content">${escapeHTML(emoji)}</div>`;
 
-        // Custom divIcon pulsing marker (or pixelated dog/duck icon)
         const marker = L.marker([pin.lat, pin.lng], {
           icon: L.divIcon({
-            className: `custom-marker ${markerClass}`,
+            className: 'custom-marker marker-emoji',
             html: markerHtml,
-            iconSize: isLargeIcon ? [40, 40] : [30, 30],
-            iconAnchor: isLargeIcon ? [20, 20] : [15, 15]
+            iconSize: [40, 40],
+            iconAnchor: [20, 20]
           })
         });
 
         // Set Popup template content
         marker.bindPopup(`
           <div class="popup-detail">
-            <span class="popup-tag ${tagClass}">${statusLabel}</span>
+            <span class="popup-tag tag-generic">${escapeHTML(emoji)} Roadtrip Stop</span>
             <h4 class="popup-title">${escapeHTML(pin.title)}</h4>
             <p class="popup-desc">${escapeHTML(pin.desc)}</p>
           </div>
@@ -1112,7 +1011,7 @@
       pinsContainer.innerHTML = '';
 
       if (pinsList.length === 0) {
-        pinsContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem; border: 1px dashed rgba(255,255,255,0.05); border-radius:12px;">No pins added yet. Click on the map to add stops!</p>';
+        pinsContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem; border: 1px dashed rgba(255,255,255,0.05); border-radius:12px;">No pins added yet. Enter an address in the form to add stops!</p>';
         return;
       }
 
@@ -1127,28 +1026,14 @@
           focusLocation([pin.lat, pin.lng], 8, markerKey);
         });
 
-        // Match status for badge color
-        let badgeClass = 'suggestion';
-        let statusText = 'Viewer Suggestion';
-        if (pin.status === 'completed') {
-          badgeClass = 'completed';
-          statusText = 'Completed Stop';
-        } else if (pin.status === 'planned') {
-          badgeClass = 'planned';
-          statusText = 'Upcoming Stop';
-        } else if (pin.status === 'doginal') {
-          badgeClass = 'doginal';
-          statusText = 'Doginal Dog Stop';
-        } else if (pin.status === 'duck') {
-          badgeClass = 'duck';
-          statusText = 'Duck Sanctuary Stop';
-        }
+        const emoji = pin.emoji || '📍';
+        const addressText = pin.address || 'Custom Coordinates';
 
         item.innerHTML = `
-          <div class="pin-badge ${badgeClass}"></div>
+          <div style="font-size: 1.5rem; margin-right: 0.75rem; flex-shrink: 0; user-select: none;">${escapeHTML(emoji)}</div>
           <div class="pin-text">
             <h4>${escapeHTML(pin.title)}</h4>
-            <p>${statusText}</p>
+            <p>${escapeHTML(addressText)}</p>
           </div>
           <span class="pin-chevron">➔</span>
         `;
@@ -1233,10 +1118,7 @@
     creatorForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const address = creatorAddressInput.value.trim();
-      const title = creatorTitleInput.value.trim();
-      const desc = creatorDescInput.value.trim();
-      const status = creatorStatusSelect.value;
+      const emoji = creatorEmojiInput.value.trim() || '📍';
 
       if (!address || !title || !desc) return;
 
@@ -1270,7 +1152,7 @@
         const lng = parseFloat(data[0].lon);
 
         // Add to tracking array
-        const newPin = { lat, lng, title, desc, status, address };
+        const newPin = { lat, lng, title, desc, emoji, address };
         pinsList.push(newPin);
 
         // Save to localStorage immediately
@@ -1287,7 +1169,7 @@
         creatorAddressInput.value = '';
         creatorTitleInput.value = '';
         creatorDescInput.value = '';
-        creatorStatusSelect.selectedIndex = 0;
+        creatorEmojiInput.value = '📍';
 
       } catch (err) {
         console.error(err);
@@ -1352,6 +1234,14 @@
           copyJsonBtn.classList.add('btn-primary');
         }, 2000);
       });
+    });
+
+    // Quick Tap Emoji Selector event listener
+    const quickEmojisContainer = document.getElementById('quick-emojis');
+    quickEmojisContainer.addEventListener('click', (e) => {
+      if (e.target.classList.contains('quick-emoji-tap')) {
+        creatorEmojiInput.value = e.target.textContent;
+      }
     });
 
     // --- On Application Startup ---
