@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Mobile-first viewport settings to eliminate delay and auto-zoom -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>JustDuckit Roadtrip Tracker 🦆</title>
   
   <!-- Modern Fonts -->
@@ -18,8 +19,8 @@
     /* Design Tokens */
     :root {
       --bg-dark: #070a13;
-      --bg-card: rgba(15, 23, 42, 0.75);
-      --bg-input: rgba(7, 10, 19, 0.6);
+      --bg-card: rgba(15, 23, 42, 0.85);
+      --bg-input: rgba(7, 10, 19, 0.7);
       --border-color: rgba(255, 255, 255, 0.08);
       --border-focus: rgba(168, 85, 247, 0.5);
       
@@ -43,40 +44,39 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      /* Remove double-tap delay globally */
+      touch-action: manipulation;
     }
 
-    body {
+    html, body {
       background-color: var(--bg-dark);
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.12) 0px, transparent 50%);
       color: var(--text-main);
       font-family: var(--font-body);
-      min-height: 100vh;
-      overflow-x: hidden;
-      display: flex;
-      flex-direction: column;
+      height: 100%;
+      overflow: hidden; /* Lock scrollbars on mobile viewport */
       line-height: 1.5;
     }
 
     /* Layout Container */
     .dashboard-container {
       width: 100%;
-      max-width: 1600px;
-      margin: 0 auto;
-      padding: 1.25rem;
+      height: 100%;
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
-      flex-grow: 1;
+      position: relative;
     }
 
-    /* App Header */
+    /* Floating Header on Mobile */
     .app-header {
-      background: rgba(15, 23, 42, 0.55);
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      z-index: 1000;
+      background: rgba(15, 23, 42, 0.8);
       border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 1.25rem 2rem;
+      border-radius: 16px;
+      padding: 0.85rem 1.25rem;
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
@@ -84,24 +84,22 @@
       flex-direction: row;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 1.25rem;
+      transition: var(--transition-smooth);
     }
 
     .header-info {
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
     }
 
     .logo-container {
       display: flex;
       align-items: center;
-      gap: 0.85rem;
+      gap: 0.6rem;
     }
 
     .logo-emoji {
-      font-size: 2.2rem;
+      font-size: 1.6rem;
       animation: waddle 2s infinite ease-in-out alternate;
       display: inline-block;
     }
@@ -113,7 +111,7 @@
 
     .app-header h1 {
       font-family: var(--font-heading);
-      font-size: 1.85rem;
+      font-size: 1.35rem;
       font-weight: 800;
       background: linear-gradient(135deg, #fff 40%, var(--color-completed) 100%);
       -webkit-background-clip: text;
@@ -123,17 +121,17 @@
 
     .app-header .subtitle {
       color: var(--text-muted);
-      font-size: 0.95rem;
+      font-size: 0.75rem;
       font-weight: 400;
     }
 
-    /* Button System */
+    /* Buttons touch targets */
     .btn {
       font-family: var(--font-body);
-      font-size: 0.9rem;
-      font-weight: 600;
-      padding: 0.7rem 1.25rem;
-      border-radius: 12px;
+      font-size: 1rem; /* iOS Friendly size */
+      font-weight: 700;
+      padding: 0.85rem 1.5rem; /* Min 48px height footprint */
+      border-radius: 14px;
       border: 1px solid transparent;
       cursor: pointer;
       display: inline-flex;
@@ -151,82 +149,68 @@
       box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
     }
 
-    .btn-primary:hover {
+    .btn-primary:hover, .btn-primary:active {
       background: linear-gradient(135deg, #b55fe6 0%, #8b5cf6 100%);
-      box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
-      transform: translateY(-1px);
+      transform: scale(0.98);
     }
 
     .btn-secondary {
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(15, 23, 42, 0.7);
       border-color: var(--border-color);
       color: var(--text-main);
+      padding: 0.65rem 1.1rem;
+      min-height: 42px;
+      font-size: 0.85rem;
     }
 
-    .btn-secondary:hover {
+    .btn-secondary:active {
       background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.15);
-      transform: translateY(-1px);
     }
 
-    /* Main Content Layout Grid */
+    /* Main Grid Layout */
     .main-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.25rem;
-      flex-grow: 1;
-    }
-
-    @media (min-width: 1024px) {
-      .main-grid {
-        grid-template-columns: 1fr 400px;
-      }
-    }
-
-    /* Map Area Styles */
-    .map-wrapper {
-      display: flex;
-      flex-direction: column;
       position: relative;
       width: 100%;
-      height: 70vh; /* Mobile Height */
+      height: 100%;
+      display: flex;
+      flex-direction: column;
     }
 
-    @media (min-width: 1024px) {
-      .map-wrapper {
-        height: 85vh; /* Desktop Height */
-      }
+    /* Map fills screen on mobile */
+    .map-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
     }
 
     #map {
       width: 100%;
       height: 100%;
-      border-radius: 20px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
       z-index: 1;
     }
 
-    /* Map Tooltip Banner */
     .map-banner {
       position: absolute;
-      top: 15px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(15, 23, 42, 0.95);
+      top: 76px;
+      left: 12px;
+      right: 12px;
+      background: rgba(15, 23, 42, 0.9);
       border: 1px solid var(--border-color);
-      border-radius: 30px;
-      padding: 0.6rem 1.5rem;
+      border-radius: 12px;
+      padding: 0.5rem 1rem;
       color: #fff;
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       font-weight: 600;
-      z-index: 1000;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      z-index: 999;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     .map-banner .pulse-dot {
@@ -242,52 +226,112 @@
       100% { transform: scale(1.3); opacity: 1; }
     }
 
-    /* Sidebar Area Styles */
+    /* Bottom Sheet Drawer for Mobile */
     .sidebar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      max-height: 82vh; /* Max height overlay on mobile */
+      background: rgba(7, 10, 19, 0.94);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px 24px 0 0;
+      z-index: 2000; /* Higher than map overlay */
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
+      /* Slide drawer mechanics */
+      transform: translateY(calc(100% - 72px)); /* Expose header only */
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Expanded state for Bottom Sheet */
+    .sidebar.bottom-sheet-open {
+      transform: translateY(0);
+    }
+
+    /* Bottom Sheet Header Handle */
+    .bottom-sheet-header {
+      width: 100%;
+      padding: 0.5rem 0.5rem 1rem 0.5rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .bottom-sheet-handle {
+      width: 44px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 3px;
+      margin-bottom: 0.5rem;
+    }
+
+    .bottom-sheet-title {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .bottom-sheet-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Scrollable Inner Content for Bottom Sheet */
+    .bottom-sheet-body {
+      flex-grow: 1;
       overflow-y: auto;
-    }
-
-    @media (min-width: 1024px) {
-      .sidebar {
-        max-height: 85vh;
-        padding-right: 0.25rem;
-      }
-      /* Custom Scrollbar for Sidebar */
-      .sidebar::-webkit-scrollbar {
-        width: 6px;
-      }
-      .sidebar::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .sidebar::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-      }
-      .sidebar::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.2);
-      }
-    }
-
-    /* Card System */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 1.5rem;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      padding: 0 1.25rem 2rem 1.25rem;
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
+    }
+
+    /* Bottom Sheet Backdrop Overlay */
+    .bottom-sheet-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 7, 13, 0.6);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 1500;
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition-smooth);
+    }
+
+    .bottom-sheet-backdrop.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Cards inside sheet */
+    .card {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
 
     .card-title {
       font-family: var(--font-heading);
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       font-weight: 700;
       letter-spacing: -0.01em;
       display: flex;
@@ -297,21 +341,21 @@
 
     .card-desc {
       color: var(--text-muted);
-      font-size: 0.85rem;
-      margin-top: -0.75rem;
-      line-height: 1.4;
+      font-size: 0.8rem;
+      margin-top: -0.5rem;
+      line-height: 1.35;
     }
 
-    /* Form Systems */
+    /* Form Systems with min-16px font preventing zoom */
     .form-group {
       display: flex;
       flex-direction: column;
       gap: 0.4rem;
-      margin-bottom: 0.85rem;
+      margin-bottom: 0.75rem;
     }
 
     .form-group label {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
@@ -323,10 +367,10 @@
     .form-group select {
       background: var(--bg-input);
       border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 0.75rem;
+      border-radius: 12px;
+      padding: 0.85rem;
       font-family: var(--font-body);
-      font-size: 0.95rem;
+      font-size: 16px; /* CRITICAL: 16px minimum prevents mobile viewport auto-zoom */
       color: var(--text-main);
       outline: none;
       transition: var(--transition-smooth);
@@ -335,7 +379,7 @@
 
     .form-group textarea {
       resize: none;
-      min-height: 80px;
+      min-height: 72px;
     }
 
     .form-group input:focus, 
@@ -345,61 +389,56 @@
       box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
     }
 
+    /* Touch-friendly Quick Tap Emojis */
     .quick-emojis-container {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.65rem;
       overflow-x: auto;
-      padding: 0.4rem 0;
+      padding: 0.5rem 0;
       scrollbar-width: none;
       margin-top: 0.25rem;
     }
+
     .quick-emojis-container::-webkit-scrollbar {
       display: none;
     }
+
     .quick-emoji-tap {
-      font-size: 1.35rem;
+      font-size: 1.5rem;
       cursor: pointer;
-      padding: 0.35rem;
-      background: rgba(255, 255, 255, 0.03);
+      width: 48px; /* Large 48px Touch Target */
+      height: 48px;
+      background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 50%; /* Circular buttons */
       transition: var(--transition-smooth);
       user-select: none;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 38px;
-      min-height: 38px;
-    }
-    .quick-emoji-tap:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: var(--border-focus);
-      transform: translateY(-1px);
+      flex-shrink: 0;
     }
 
-    /* Location Pin List in Sidebar */
+    .quick-emoji-tap:active {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-focus);
+      transform: scale(0.92);
+    }
+
+    /* Location Pin List */
     .pins-scroll-area {
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
-      max-height: 250px;
+      max-height: 240px;
       overflow-y: auto;
-      padding-right: 0.25rem;
-    }
-
-    .pins-scroll-area::-webkit-scrollbar {
-      width: 4px;
-    }
-    .pins-scroll-area::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 4px;
     }
 
     .pin-item {
-      background: rgba(7, 10, 19, 0.4);
+      background: rgba(7, 10, 19, 0.35);
       border: 1px solid rgba(255, 255, 255, 0.03);
       border-radius: 12px;
-      padding: 0.8rem 1rem;
+      padding: 0.9rem 1.1rem;
       display: flex;
       align-items: center;
       gap: 0.75rem;
@@ -407,75 +446,52 @@
       transition: var(--transition-smooth);
     }
 
-    .pin-item:hover {
+    .pin-item:active {
       background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(255, 255, 255, 0.08);
-      transform: translateY(-1px);
+      transform: scale(0.98);
     }
-
-    .pin-badge {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      box-shadow: 0 0 8px currentColor;
-      flex-shrink: 0;
-    }
-
-    .pin-badge.completed { color: var(--color-completed); background-color: var(--color-completed); }
-    .pin-badge.planned { color: var(--color-planned); background-color: var(--color-planned); }
-    .pin-badge.suggestion { color: var(--color-suggestion); background-color: var(--color-suggestion); }
-    .pin-badge.doginal { color: var(--color-doginal); background-color: var(--color-doginal); }
-    .pin-badge.duck { color: var(--color-duck); background-color: var(--color-duck); }
 
     .pin-text {
       flex-grow: 1;
+      min-width: 0;
     }
 
     .pin-text h4 {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       font-weight: 600;
       color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .pin-text p {
       font-size: 0.75rem;
       color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .pin-chevron {
       color: var(--text-muted);
       font-size: 0.8rem;
-      transition: var(--transition-smooth);
     }
 
-    .pin-item:hover .pin-chevron {
-      color: #fff;
-      transform: translateX(2px);
-    }
-
-    /* Requests list in Sidebar */
+    /* Requests list */
     .requests-list {
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
-      max-height: 200px;
+      max-height: 180px;
       overflow-y: auto;
-      padding-right: 0.25rem;
-    }
-
-    .requests-list::-webkit-scrollbar {
-      width: 4px;
-    }
-    .requests-list::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 4px;
     }
 
     .request-item {
       background: rgba(7, 10, 19, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.02);
       border-radius: 12px;
-      padding: 0.8rem;
+      padding: 0.85rem;
       display: flex;
       flex-direction: column;
       gap: 0.4rem;
@@ -492,30 +508,30 @@
       font-size: 0.8rem;
       color: var(--text-muted);
       line-height: 1.3;
+      padding-right: 2.5rem;
     }
 
     .request-share-btn {
       position: absolute;
       top: 8px;
       right: 8px;
-      background: none;
-      border: none;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
       color: var(--text-muted);
       cursor: pointer;
       font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.35rem 0.65rem;
+      border-radius: 6px;
       transition: var(--transition-smooth);
-      padding: 0.2rem 0.4rem;
-      border-radius: 4px;
-      border: 1px solid transparent;
     }
 
-    .request-share-btn:hover {
-      color: var(--color-completed);
-      border-color: rgba(168, 85, 247, 0.2);
-      background: rgba(168, 85, 247, 0.05);
+    .request-share-btn:active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
     }
 
-    /* Support "Fuel the Journey" Card */
+    /* Support "Fuel the Journey" PayPal & Crypto Overhaul */
     .support-card {
       background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%), var(--bg-card);
       border: 1px solid rgba(168, 85, 247, 0.2);
@@ -524,20 +540,7 @@
     .support-actions {
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .support-btn {
-      font-size: 0.85rem;
-      font-weight: 700;
-      border-radius: 12px;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.75rem;
-      min-height: 48px;
-      transition: var(--transition-smooth);
+      gap: 0.85rem;
     }
 
     .paypal-btn {
@@ -545,22 +548,23 @@
       color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.05);
       box-shadow: 0 4px 14px rgba(0, 48, 135, 0.4);
+      width: 100%;
+      text-decoration: none;
     }
 
-    .paypal-btn:hover {
+    .paypal-btn:active {
       background: #0045c3;
-      box-shadow: 0 6px 20px rgba(0, 48, 135, 0.5);
-      transform: translateY(-2px);
+      transform: scale(0.98);
     }
 
     .crypto-container {
-      background: rgba(7, 10, 19, 0.4);
+      background: rgba(7, 10, 19, 0.5);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 0.85rem 1rem;
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
+      gap: 0.75rem;
     }
 
     .crypto-header {
@@ -573,24 +577,35 @@
       align-items: center;
     }
 
+    /* Massive Touch Target Crypto Row */
     .crypto-row {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      background: rgba(15, 23, 42, 0.6);
+      gap: 0.65rem;
+      background: rgba(15, 23, 42, 0.65);
       border: 1px solid rgba(255, 255, 255, 0.03);
-      border-radius: 8px;
-      padding: 0.35rem 0.5rem;
+      border-radius: 12px;
+      padding: 0.75rem 1rem; /* Expanded Target Area */
+      cursor: pointer;
+      user-select: none;
+      transition: var(--transition-smooth);
+    }
+
+    .crypto-row:active {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: var(--border-focus);
+      transform: scale(0.97);
     }
 
     .crypto-label-badge {
       font-family: var(--font-heading);
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       font-weight: 800;
-      padding: 0.25rem 0.45rem;
+      padding: 0.3rem 0.55rem;
       border-radius: 6px;
       text-align: center;
-      min-width: 42px;
+      min-width: 44px;
+      flex-shrink: 0;
     }
 
     .sol-badge {
@@ -605,48 +620,49 @@
       border: 1px solid rgba(98, 126, 234, 0.25);
     }
 
-    .crypto-address-input {
+    .crypto-address-text {
       flex-grow: 1;
-      background: transparent !important;
-      border: none !important;
-      color: var(--text-muted) !important;
+      color: var(--text-muted);
       font-family: monospace;
-      font-size: 0.75rem !important;
-      padding: 0 !important;
-      min-height: auto !important;
-      cursor: default;
-      user-select: all;
-      outline: none;
-      box-shadow: none !important;
+      font-size: 0.75rem;
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
     }
 
-    .crypto-copy-btn {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      font-family: var(--font-body);
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 0.3rem 0.6rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: var(--transition-smooth);
-      white-space: nowrap;
-      min-height: auto !important;
+    .crypto-copy-indicator {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
     }
 
-    .crypto-copy-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: var(--border-focus);
+    /* Floating Toast Alerts for clipboard confirmations */
+    .toast-notification {
+      position: fixed;
+      bottom: 85px; /* Sits comfortably above bottom sheet handle resting spot */
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: rgba(16, 185, 129, 0.95);
+      color: #fff;
+      padding: 1rem 2rem;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      box-shadow: 0 10px 30px rgba(16, 185, 129, 0.45);
+      z-index: 10000;
+      opacity: 0;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    .crypto-copy-btn.copied {
-      background: rgba(16, 185, 129, 0.15);
-      color: #10b981;
-      border-color: rgba(16, 185, 129, 0.3);
+    .toast-notification.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
     }
 
     /* Custom Universal Emoji Marker styles */
@@ -665,7 +681,7 @@
     }
 
     .marker-emoji-content {
-      font-size: 1.5rem;
+      font-size: 1.55rem;
       z-index: 3;
       animation: emojiWiggle 1.2s infinite alternate ease-in-out;
       user-select: none;
@@ -676,17 +692,16 @@
 
     .marker-emoji-glow {
       position: absolute;
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.2);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 10px rgba(168, 85, 247, 0.15);
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.9);
       z-index: 1;
-      transition: var(--transition-smooth);
     }
 
-    .custom-marker:hover .marker-emoji-glow {
+    .custom-marker:active .marker-emoji-glow {
       border-color: var(--border-focus);
       box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4), 0 0 20px rgba(168, 85, 247, 0.3);
       transform: scale(1.15);
@@ -731,36 +746,6 @@
       font-size: 0.85rem;
       color: var(--text-muted);
       line-height: 1.45;
-    }
-
-    /* Leaflet Overrides */
-    .leaflet-container {
-      background: #0d121f !important;
-      font-family: var(--font-body) !important;
-    }
-
-    .leaflet-popup-content-wrapper {
-      background: rgba(13, 18, 30, 0.95) !important;
-      backdrop-filter: blur(12px) !important;
-      -webkit-backdrop-filter: blur(12px) !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      border-radius: 16px !important;
-      color: #f8fafc !important;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.6) !important;
-    }
-    .leaflet-popup-tip {
-      background: rgba(13, 18, 30, 0.95) !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
-    .leaflet-control-attribution {
-      background: rgba(15, 23, 42, 0.75) !important;
-      backdrop-filter: blur(8px);
-      color: var(--text-muted) !important;
-      border-radius: 4px;
-      border: 1px solid var(--border-color);
-    }
-    .leaflet-control-attribution a {
-      color: var(--color-planned) !important;
     }
 
     /* Modal dialog styling */
@@ -840,11 +825,105 @@
       justify-content: flex-end;
       gap: 0.75rem;
     }
+
+    /* -----------------------------------------
+       DESKTOP RESPONSIVE BREAKPOINT LAUNCH (>= 768px)
+       ----------------------------------------- */
+    @media (min-width: 768px) {
+      body, html {
+        overflow: auto; /* Enable default scrollbar */
+      }
+
+      .dashboard-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 1.25rem;
+        height: auto;
+        gap: 1.25rem;
+      }
+
+      /* Non-floating static Header on Desktop */
+      .app-header {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        padding: 1.25rem 2rem;
+        border-radius: 20px;
+        z-index: 10;
+      }
+
+      .app-header h1 {
+        font-size: 1.85rem;
+      }
+
+      .app-header .subtitle {
+        font-size: 0.95rem;
+      }
+
+      /* Side-by-side Layout grid on Desktop */
+      .main-grid {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 1.25rem;
+        height: auto;
+      }
+
+      .map-wrapper {
+        position: relative;
+        height: 85vh;
+      }
+
+      #map {
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      }
+
+      .map-banner {
+        top: 15px;
+      }
+
+      /* Sidebar turns into normal scrollable card list on Desktop */
+      .sidebar {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        width: auto;
+        max-height: 85vh;
+        background: transparent;
+        border-top: none;
+        border-radius: 0;
+        z-index: 10;
+        backdrop-filter: none;
+        box-shadow: none;
+        transform: none !important; /* Force override drawer slide transitions */
+        overflow-y: auto;
+        gap: 1.25rem;
+      }
+
+      .bottom-sheet-header {
+        display: none; /* Hide bottom-sheet drag trigger */
+      }
+
+      .bottom-sheet-body {
+        padding: 0;
+        gap: 1.25rem;
+      }
+
+      .bottom-sheet-backdrop {
+        display: none !important; /* Never show backdrop on desktop */
+      }
+    }
   </style>
 </head>
 <body>
 
+  <!-- Drawer Backdrop Overlay -->
+  <div class="bottom-sheet-backdrop" id="sheet-backdrop"></div>
+
   <div class="dashboard-container">
+    <!-- Floating Header -->
     <header class="app-header">
       <div class="header-info">
         <div class="logo-container">
@@ -854,144 +933,156 @@
         <p class="subtitle">Creator Control Deck & Live Tracker</p>
       </div>
       <div>
-        <button type="button" class="btn btn-secondary" id="export-data-btn">Export Map Data</button>
+        <button type="button" class="btn btn-secondary" id="export-data-btn">Export Data</button>
       </div>
     </header>
     
     <div class="main-grid">
-      <!-- Left/Center Map Wrapper -->
+      <!-- Fullscreen Map Background -->
       <main class="map-wrapper">
         <div class="map-banner">
           <div class="pulse-dot"></div>
-          <span>Type any city or address in the Creator Deck to drop a pin!</span>
+          <span>Search addresses in the bottom drawer to add stops!</span>
         </div>
         <div id="map"></div>
       </main>
 
-      <!-- Right/Bottom Sidebar -->
-      <aside class="sidebar">
-        <!-- Card 1: Creator Control Deck (Permanently Accessible) -->
-        <section class="card" id="creator-deck-card">
-          <div>
-            <h3 class="card-title">Creator Control Deck 🛠️</h3>
-            <p class="card-desc">Type any address or city below and we will automatically map and pin it.</p>
+      <!-- Bottom Sheet Drawer / Desktop Sidebar -->
+      <aside class="sidebar" id="bottom-sheet">
+        <!-- Sheet Handle -->
+        <div class="bottom-sheet-header" id="sheet-trigger">
+          <div class="bottom-sheet-handle"></div>
+          <div class="bottom-sheet-title">
+            <span>Controls & Info</span>
+            <span>🛠️</span>
           </div>
-          
-          <form id="creator-form">
-            <div class="form-group">
-              <label for="creator-address">Enter Address or City</label>
-              <input type="text" id="creator-address" placeholder="e.g. Nashville, TN or Times Square, NYC" required autocomplete="off">
+          <div class="bottom-sheet-subtitle">Tap to toggle control panel</div>
+        </div>
+
+        <div class="bottom-sheet-body">
+          <!-- Card 1: Creator Control Deck -->
+          <section class="card" id="creator-deck-card">
+            <div>
+              <h3 class="card-title">Creator Control Deck</h3>
+              <p class="card-desc">Type any address or city below and we will automatically map and pin it.</p>
             </div>
             
-            <div class="form-group">
-              <label for="creator-title">Destination Title</label>
-              <input type="text" id="creator-title" placeholder="e.g. Music City Meetup" required autocomplete="off">
-            </div>
-            
-            <div class="form-group">
-              <label for="creator-desc">Why We're Here</label>
-              <textarea id="creator-desc" placeholder="Describe the stop goals or adventure details..." required></textarea>
-            </div>
-            
-            <div class="form-group">
-              <label for="creator-emoji">Pin Emoji</label>
-              <input type="text" id="creator-emoji" placeholder="Type or paste an emoji (e.g. 📍)" maxlength="5" required value="📍">
-              <div class="quick-emojis-container" id="quick-emojis">
-                <span class="quick-emoji-tap">📍</span>
-                <span class="quick-emoji-tap">🟣</span>
-                <span class="quick-emoji-tap">🟢</span>
-                <span class="quick-emoji-tap">🐶</span>
-                <span class="quick-emoji-tap">🦆</span>
-                <span class="quick-emoji-tap">⛺</span>
-                <span class="quick-emoji-tap">🚜</span>
-                <span class="quick-emoji-tap">🍔</span>
-                <span class="quick-emoji-tap">⛽</span>
+            <form id="creator-form">
+              <div class="form-group">
+                <label for="creator-address">Enter Address or City</label>
+                <input type="text" id="creator-address" placeholder="e.g. Nashville, TN or Times Square, NYC" required autocomplete="off">
               </div>
+              
+              <div class="form-group">
+                <label for="creator-title">Destination Title</label>
+                <input type="text" id="creator-title" placeholder="e.g. Music City Meetup" required autocomplete="off">
+              </div>
+              
+              <div class="form-group">
+                <label for="creator-desc">Why We're Here</label>
+                <textarea id="creator-desc" placeholder="Describe the stop goals or adventure details..." required></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label for="creator-emoji">Pin Emoji</label>
+                <input type="text" id="creator-emoji" placeholder="Type or paste an emoji (e.g. 📍)" maxlength="5" required value="📍">
+                <div class="quick-emojis-container" id="quick-emojis">
+                  <span class="quick-emoji-tap">📍</span>
+                  <span class="quick-emoji-tap">🟣</span>
+                  <span class="quick-emoji-tap">🟢</span>
+                  <span class="quick-emoji-tap">🐶</span>
+                  <span class="quick-emoji-tap">🦆</span>
+                  <span class="quick-emoji-tap">⛺</span>
+                  <span class="quick-emoji-tap">🚜</span>
+                  <span class="quick-emoji-tap">🍔</span>
+                  <span class="quick-emoji-tap">⛽</span>
+                </div>
+              </div>
+              
+              <button type="submit" class="btn btn-primary" style="width: 100%;">Save Pin</button>
+            </form>
+          </section>
+
+          <!-- Card 2: Adventure stops list -->
+          <section class="card">
+            <div>
+              <h3 class="card-title">Adventure Tracker</h3>
+              <p class="card-desc">Active itinerary stops stored in your session. Click to focus.</p>
             </div>
             
-            <button type="submit" class="btn btn-primary" style="width: 100%;">Save Pin</button>
-          </form>
-        </section>
-
-        <!-- Card 2: Adventure stops list -->
-        <section class="card">
-          <div>
-            <h3 class="card-title">Adventure Tracker</h3>
-            <p class="card-desc">Active itinerary stops stored in your session. Click to focus.</p>
-          </div>
-          
-          <div class="pins-scroll-area" id="pins-list-container">
-            <!-- Populated via Javascript -->
-          </div>
-        </section>
-
-        <!-- Card 3: Community Request Form -->
-        <section class="card">
-          <div>
-            <h3 class="card-title">Drop a Roadtrip Request</h3>
-            <p class="card-desc">Suggest a destination or warning stop for the crew!</p>
-          </div>
-          
-          <form id="community-request-form">
-            <div class="form-group">
-              <label for="request-city">City, State</label>
-              <input type="text" id="request-city" placeholder="e.g. Memphis, TN" required autocomplete="address-level2">
+            <div class="pins-scroll-area" id="pins-list-container">
+              <!-- Populated via Javascript -->
             </div>
-            <div class="form-group">
-              <label for="request-desc">What's out there?</label>
-              <textarea id="request-desc" placeholder="Tell the crew what to see, do, or watch out for..." required></textarea>
+          </section>
+
+          <!-- Card 3: Community Request Form -->
+          <section class="card">
+            <div>
+              <h3 class="card-title">Drop a Roadtrip Request</h3>
+              <p class="card-desc">Suggest a destination or warning stop for the crew!</p>
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Request</button>
-          </form>
-
-          <div class="requests-list" id="requests-list-container">
-            <!-- Populated via Javascript -->
-          </div>
-        </section>
-
-        <!-- Card 4: Support Fuel the Journey -->
-        <section class="card support-card">
-          <div>
-            <h3 class="card-title">Fuel the Journey ⛽</h3>
-            <p class="card-desc">Support the road trip and keep the rig rollin'. Help us hit the next state line!</p>
-          </div>
-          
-          <div class="support-actions">
-            <!-- PayPal Button -->
-            <a href="https://www.paypal.com/donate/?hosted_button_id=RG9T939ERXZB8&utm_source=ig&utm_medium=social&utm_content=link_in_bio" target="_blank" rel="noopener noreferrer" class="support-btn paypal-btn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 6px;">
-                <path d="M20.02 6.84c.15-.72-.08-1.57-.67-2.3C18.66 3.65 17.2 3.1 15 3.1h-7.8c-.5 0-.9.3-.9.9L4.12 19.3c0 .3.2.6.5.6h4.3l1.1-6.8v.1c.1-.6.6-.9 1.1-.9h2.3c3.4 0 5.8-1.7 6.6-5.5z"/>
-              </svg>
-              <span>Donate with PayPal</span>
-            </a>
             
-            <!-- Crypto Wallets -->
-            <div class="crypto-container">
-              <div class="crypto-header">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;">
-                  <rect x="2" y="4" width="20" height="16" rx="2"/>
-                  <line x1="12" y1="10" x2="12" y2="14"/>
-                  <line x1="8" y1="12" x2="16" y2="12"/>
+            <form id="community-request-form">
+              <div class="form-group">
+                <label for="request-city">City, State</label>
+                <input type="text" id="request-city" placeholder="e.g. Memphis, TN" required autocomplete="address-level2">
+              </div>
+              <div class="form-group">
+                <label for="request-desc">What's out there?</label>
+                <textarea id="request-desc" placeholder="Tell the crew what to see, do, or watch out for..." required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Request</button>
+            </form>
+
+            <div class="requests-list" id="requests-list-container">
+              <!-- Populated via Javascript -->
+            </div>
+          </section>
+
+          <!-- Card 4: Support Fuel the Journey -->
+          <section class="card support-card">
+            <div>
+              <h3 class="card-title">Fuel the Journey ⛽</h3>
+              <p class="card-desc">Support the road trip and keep the rig rollin'. Help us hit the next state line!</p>
+            </div>
+            
+            <div class="support-actions">
+              <!-- PayPal Button -->
+              <a href="https://www.paypal.com/donate/?hosted_button_id=RG9T939ERXZB8&utm_source=ig&utm_medium=social&utm_content=link_in_bio" target="_blank" rel="noopener noreferrer" class="support-btn paypal-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 6px;">
+                  <path d="M20.02 6.84c.15-.72-.08-1.57-.67-2.3C18.66 3.65 17.2 3.1 15 3.1h-7.8c-.5 0-.9.3-.9.9L4.12 19.3c0 .3.2.6.5.6h4.3l1.1-6.8v.1c.1-.6.6-.9 1.1-.9h2.3c3.4 0 5.8-1.7 6.6-5.5z"/>
                 </svg>
-                <span>Support with Crypto</span>
-              </div>
+                <span>Donate with PayPal</span>
+              </a>
               
-              <!-- SOL Address -->
-              <div class="crypto-row">
-                <div class="crypto-label-badge sol-badge">SOL</div>
-                <input type="text" class="crypto-address-input" value="CwZDNu744EPtZzDNvhdgrxFJmKq9GHygZHQb6z4ToD6n" readonly>
-                <button type="button" class="crypto-copy-btn" data-copy-val="CwZDNu744EPtZzDNvhdgrxFJmKq9GHygZHQb6z4ToD6n">📋 Copy</button>
-              </div>
-              
-              <!-- ETH Address -->
-              <div class="crypto-row">
-                <div class="crypto-label-badge eth-badge">ETH</div>
-                <input type="text" class="crypto-address-input" value="0x3556b3cb078F4F4dEf4e8a697a3CBC64b07E49b0" readonly>
-                <button type="button" class="crypto-copy-btn" data-copy-val="0x3556b3cb078F4F4dEf4e8a697a3CBC64b07E49b0">📋 Copy</button>
+              <!-- Crypto Wallets with Full-Row Copy Targets -->
+              <div class="crypto-container">
+                <div class="crypto-header">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;">
+                    <rect x="2" y="4" width="20" height="16" rx="2"/>
+                    <line x1="12" y1="10" x2="12" y2="14"/>
+                    <line x1="8" y1="12" x2="16" y2="12"/>
+                  </svg>
+                  <span>Support with Crypto (Tap card to copy)</span>
+                </div>
+                
+                <!-- SOL Wallet Card -->
+                <div class="crypto-row" data-copy-val="CwZDNu744EPtZzDNvhdgrxFJmKq9GHygZHQb6z4ToD6n">
+                  <div class="crypto-label-badge sol-badge">SOL</div>
+                  <div class="crypto-address-text">CwZDNu744EPtZzDNvhdgrxFJmKq9GHygZHQb6z4ToD6n</div>
+                  <div class="crypto-copy-indicator">📋</div>
+                </div>
+                
+                <!-- ETH Wallet Card -->
+                <div class="crypto-row" data-copy-val="0x3556b3cb078F4F4dEf4e8a697a3CBC64b07E49b0">
+                  <div class="crypto-label-badge eth-badge">ETH</div>
+                  <div class="crypto-address-text">0x3556b3cb078F4F4dEf4e8a697a3CBC64b07E49b0</div>
+                  <div class="crypto-copy-indicator">📋</div>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </aside>
     </div>
   </div>
@@ -1012,9 +1103,13 @@
     </div>
   </dialog>
 
+  <!-- Large Floating Toast Notification Card -->
+  <div class="toast-notification" id="toast-notif">
+    <span>Copied to Clipboard! 🐾</span>
+  </div>
+
   <script>
     // --- Clean Slate Data Setup ---
-    // Source data array is completely empty of dummy stops on initialization
     const defaultPins = [];
 
     const defaultRequests = [
@@ -1028,7 +1123,7 @@
       }
     ];
 
-    // Load state from LocalStorage (using v2 key to avoid loading old pregenerated markers)
+    // Load state from LocalStorage
     let pinsList = JSON.parse(localStorage.getItem('roadtrip_pins_v2')) || [...defaultPins];
     let requestsList = JSON.parse(localStorage.getItem('roadtrip_requests_v2')) || [...defaultRequests];
 
@@ -1043,10 +1138,13 @@
     // --- State Variables ---
     const markerStore = {};
 
-    // --- Initialize Leaflet Map ---
+    // --- Initialize Leaflet Map (Optimized for smooth mobile touch) ---
     const map = L.map('map', {
-      zoomControl: true,
-      scrollWheelZoom: true
+      zoomControl: false, // Turn off default zoom buttons so viewport is clean on mobile
+      scrollWheelZoom: true,
+      tap: false, // Prevents 300ms double-tap click delays in Leaflet on touchscreen browsers
+      dragging: true,
+      touchZoom: true
     }).setView([37.0902, -95.7129], 4);
 
     // CartoDB Dark Matter tile layer for deep space theme
@@ -1080,14 +1178,34 @@
     const exportJsonText = document.getElementById('export-json-text');
     const copyJsonBtn = document.getElementById('copy-json-btn');
 
+    const toastNotif = document.getElementById('toast-notif');
+    const bottomSheet = document.getElementById('bottom-sheet');
+    const sheetTrigger = document.getElementById('sheet-trigger');
+    const sheetBackdrop = document.getElementById('sheet-backdrop');
+
+    // --- Bottom Sheet Toggle JS Mechanics ---
+    function toggleBottomSheet() {
+      if (window.innerWidth < 768) {
+        const isOpen = bottomSheet.classList.toggle('bottom-sheet-open');
+        sheetBackdrop.classList.toggle('show', isOpen);
+      }
+    }
+
+    function closeBottomSheet() {
+      if (window.innerWidth < 768) {
+        bottomSheet.classList.remove('bottom-sheet-open');
+        sheetBackdrop.classList.remove('show');
+      }
+    }
+
+    sheetTrigger.addEventListener('click', toggleBottomSheet);
+    sheetBackdrop.addEventListener('click', closeBottomSheet);
+
     // --- Render Functions ---
 
     // 1. Redraw Markers on the Map
     function renderMapMarkers() {
-      // Clear existing markers
       pinsLayerGroup.clearLayers();
-      
-      // Clear markerStore keys
       for (const key in markerStore) delete markerStore[key];
 
       pinsList.forEach((pin, index) => {
@@ -1136,6 +1254,7 @@
         
         // Handle click event on the list item to focus map
         item.addEventListener('click', () => {
+          closeBottomSheet();
           focusLocation([pin.lat, pin.lng], 8, markerKey);
         });
 
@@ -1143,7 +1262,7 @@
         const addressText = pin.address || 'Custom Coordinates';
 
         item.innerHTML = `
-          <div style="font-size: 1.5rem; margin-right: 0.75rem; flex-shrink: 0; user-select: none;">${escapeHTML(emoji)}</div>
+          <div style="font-size: 1.6rem; margin-right: 0.75rem; flex-shrink: 0; user-select: none;">${escapeHTML(emoji)}</div>
           <div class="pin-text">
             <h4>${escapeHTML(pin.title)}</h4>
             <p>${escapeHTML(addressText)}</p>
@@ -1181,13 +1300,7 @@
           e.stopPropagation();
           const textToCopy = btn.getAttribute('data-share-text');
           navigator.clipboard.writeText(textToCopy).then(() => {
-            const originalText = btn.textContent;
-            btn.textContent = 'Copied!';
-            btn.style.color = 'var(--color-planned)';
-            setTimeout(() => {
-              btn.textContent = originalText;
-              btn.style.color = '';
-            }, 1500);
+            showToastAlert('Copied suggestion text to clipboard! 🐾');
           });
         });
 
@@ -1212,6 +1325,15 @@
       }, 1500);
     }
 
+    // Show Custom Floating Toast Alert
+    function showToastAlert(message) {
+      toastNotif.querySelector('span').textContent = message;
+      toastNotif.classList.add('show');
+      setTimeout(() => {
+        toastNotif.classList.remove('show');
+      }, 2000);
+    }
+
     // Escape HTML helpers to prevent XSS injection
     function escapeHTML(str) {
       return str.replace(/[&<>'"]/g, 
@@ -1231,6 +1353,9 @@
     creatorForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
+      const address = creatorAddressInput.value.trim();
+      const title = creatorTitleInput.value.trim();
+      const desc = creatorDescInput.value.trim();
       const emoji = creatorEmojiInput.value.trim() || '📍';
 
       if (!address || !title || !desc) return;
@@ -1275,6 +1400,9 @@
         renderMapMarkers();
         renderSidebarPins();
 
+        // Close bottom drawer on mobile before fly-to
+        closeBottomSheet();
+
         // Focus map on the new location
         focusLocation([lat, lng], 8, `pin-${pinsList.length - 1}`);
 
@@ -1293,7 +1421,7 @@
       }
     });
 
-    // 3. Submit Community Viewer Request Form
+    // 2. Submit Community Viewer Request Form
     requestForm.addEventListener('submit', (e) => {
       e.preventDefault();
 
@@ -1316,7 +1444,7 @@
       requestDescInput.value = '';
     });
 
-    // 4. Export JSON Dialog Modal
+    // 3. Export JSON Dialog Modal
     exportBtn.addEventListener('click', () => {
       exportJsonText.value = JSON.stringify(pinsList, null, 2);
       exportDialog.showModal();
@@ -1325,7 +1453,6 @@
     // Close Dialog Helpers
     function closeExportDialog() {
       exportDialog.close();
-      // Reset copy button status
       copyJsonBtn.textContent = 'Copy to Clipboard';
       copyJsonBtn.classList.remove('btn-secondary');
       copyJsonBtn.classList.add('btn-primary');
@@ -1334,7 +1461,7 @@
     exportCloseBtn.addEventListener('click', closeExportDialog);
     exportCloseTop.addEventListener('click', closeExportDialog);
 
-    // Copy to Clipboard
+    // Copy to Clipboard (JSON export)
     copyJsonBtn.addEventListener('click', () => {
       exportJsonText.select();
       navigator.clipboard.writeText(exportJsonText.value).then(() => {
@@ -1349,31 +1476,25 @@
       });
     });
 
-    // Quick Tap Emoji Selector event listener
+    // 4. Quick Tap Emoji Selector event listener
     const quickEmojisContainer = document.getElementById('quick-emojis');
     quickEmojisContainer.addEventListener('click', (e) => {
-      if (e.target.classList.contains('quick-emoji-tap')) {
-        creatorEmojiInput.value = e.target.textContent;
+      const tapItem = e.target.closest('.quick-emoji-tap');
+      if (tapItem) {
+        creatorEmojiInput.value = tapItem.textContent;
       }
     });
 
-    // Crypto copy button handlers
+    // 5. Crypto card massive touch triggers
     const cryptoContainer = document.querySelector('.crypto-container');
     cryptoContainer.addEventListener('click', (e) => {
-      const btn = e.target.closest('.crypto-copy-btn');
-      if (!btn) return;
-      
-      const copyVal = btn.getAttribute('data-copy-val');
-      navigator.clipboard.writeText(copyVal).then(() => {
-        const originalText = btn.innerHTML;
-        btn.innerHTML = 'Copied!';
-        btn.classList.add('copied');
-        
-        setTimeout(() => {
-          btn.innerHTML = originalText;
-          btn.classList.remove('copied');
-        }, 2000);
-      });
+      const cardRow = e.target.closest('.crypto-row');
+      if (cardRow) {
+        const copyVal = cardRow.getAttribute('data-copy-val');
+        navigator.clipboard.writeText(copyVal).then(() => {
+          showToastAlert('Copied to Clipboard! 🐾');
+        });
+      }
     });
 
     // --- On Application Startup ---
