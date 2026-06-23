@@ -737,12 +737,18 @@
     }
 
     .viewer-suggestion-marker {
-      opacity: 0.55 !important;
+      opacity: 0.75 !important;
       transition: var(--transition-smooth);
     }
 
     .viewer-suggestion-marker:hover, .viewer-suggestion-marker:active {
-      opacity: 0.9 !important;
+      opacity: 1.0 !important;
+    }
+
+    .viewer-suggestion-marker .marker-emoji-glow {
+      border-color: rgba(251, 191, 36, 0.6) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 12px rgba(251, 191, 36, 0.5) !important;
+      background: rgba(25, 20, 10, 0.95) !important;
     }
 
     .tag-suggestion {
@@ -1079,7 +1085,7 @@
                 <textarea id="creator-desc" placeholder="Describe the stop goals or adventure details..." required></textarea>
               </div>
               
-              <div class="form-group">
+              <div class="form-group" id="creator-emoji-group">
                 <label for="creator-emoji">Pin Emoji</label>
                 <input type="text" id="creator-emoji" placeholder="Type or paste an emoji (e.g. 📍)" maxlength="5" required value="📍">
                 <div class="quick-emojis-container" id="quick-emojis">
@@ -1813,6 +1819,7 @@
     const adminLoginBtn = document.getElementById('admin-login-btn');
     const adminBadgeContainer = document.getElementById('admin-badge-container');
     const creatorKeyGroup = document.getElementById('creator-key-group');
+    const creatorEmojiGroup = document.getElementById('creator-emoji-group');
     const creatorDeckTitle = document.querySelector('#creator-deck-card .card-title');
     const creatorDeckDesc = document.querySelector('#creator-deck-card .card-desc');
 
@@ -1821,12 +1828,14 @@
         adminLoginBtn.textContent = 'Admin Logout';
         adminBadgeContainer.innerHTML = `<span class="admin-badge">👑 Admin Mode</span>`;
         if (creatorKeyGroup) creatorKeyGroup.style.display = 'none';
+        if (creatorEmojiGroup) creatorEmojiGroup.style.display = 'flex';
         if (creatorDeckTitle) creatorDeckTitle.innerHTML = 'Creator Control Deck 👑';
         if (creatorDeckDesc) creatorDeckDesc.textContent = 'Add a visited location or planned stop directly to the official route.';
       } else {
         adminLoginBtn.textContent = 'Admin Login';
         adminBadgeContainer.innerHTML = '';
-        if (creatorKeyGroup) creatorKeyGroup.style.display = 'flex';
+        if (creatorKeyGroup) creatorKeyGroup.style.display = 'none'; // Hide admin key field from public form
+        if (creatorEmojiGroup) creatorEmojiGroup.style.display = 'none'; // Hide emoji selector from followers
         if (creatorDeckTitle) creatorDeckTitle.innerHTML = 'Suggest a Stop 💡';
         if (creatorDeckDesc) creatorDeckDesc.textContent = 'Suggest a cool spot, meetup, or road warning for the crew!';
       }
@@ -1907,12 +1916,15 @@
         }
 
         const isOfficial = isAdminMode || (password === 'Duckit2026');
+        // Force yellow circle emoji for follower suggestions, otherwise use selected emoji
+        const finalEmoji = isOfficial ? emoji : '🟡';
+        
         const newPinPayload = {
           lat,
           lng,
           title,
           desc,
-          emoji,
+          emoji: finalEmoji,
           address,
           is_official: isOfficial
         };
