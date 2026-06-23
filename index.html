@@ -937,6 +937,76 @@
         display: none !important; /* Never show backdrop on desktop */
       }
     }
+
+    /* Admin UI Styles */
+    .admin-badge {
+      background: linear-gradient(135deg, #fb7185 0%, #e11d48 100%);
+      color: white;
+      padding: 0.25rem 0.6rem;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 10px rgba(225, 29, 72, 0.3);
+    }
+
+    .popup-admin-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      border-top: 1px solid var(--border-color);
+      padding-top: 0.6rem;
+    }
+
+    .btn-popup {
+      font-size: 0.75rem !important;
+      padding: 0.35rem 0.65rem !important;
+      min-height: unset !important;
+      height: 30px !important;
+      border-radius: 8px !important;
+      font-weight: 600 !important;
+    }
+
+    .btn-approve {
+      background: var(--color-planned);
+      color: white;
+    }
+
+    .btn-delete {
+      background: #ef4444 !important;
+      color: white !important;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .btn-delete:active {
+      background: #dc2626 !important;
+    }
+
+    .btn-delete-item {
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      cursor: pointer;
+      padding: 0.4rem;
+      border-radius: 8px;
+      transition: var(--transition-smooth);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      z-index: 10;
+    }
+
+    .btn-delete-item:active {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+      transform: scale(0.9);
+    }
   </style>
 </head>
 <body>
@@ -954,7 +1024,9 @@
         </div>
         <p class="subtitle">Creator Control Deck & Live Tracker</p>
       </div>
-      <div>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <span id="admin-badge-container"></span>
+        <button type="button" class="btn btn-secondary" id="admin-login-btn" style="min-height: 42px; padding: 0.65rem 1.1rem; font-size: 0.85rem;">Admin Login</button>
         <button type="button" class="btn btn-secondary" id="export-data-btn">Export Data</button>
       </div>
     </header>
@@ -990,6 +1062,8 @@
             </div>
             
             <form id="creator-form">
+              <input type="hidden" id="creator-lat">
+              <input type="hidden" id="creator-lng">
               <div class="form-group">
                 <label for="creator-address">Enter Address or City</label>
                 <input type="text" id="creator-address" placeholder="e.g. Nashville, TN or Times Square, NYC" required autocomplete="off">
@@ -1021,7 +1095,7 @@
                 </div>
               </div>
 
-              <div class="form-group">
+              <div class="form-group" id="creator-key-group">
                 <label for="creator-key">Secret Key (Admin Only)</label>
                 <input type="password" id="creator-key" placeholder="Enter key for official pins" autocomplete="off">
               </div>
@@ -1149,9 +1223,8 @@
 
   <script>
     // --- Supabase Cloud Configuration ---
-    // Please replace with your actual Supabase URL and Anon Key:
-    const SUPABASE_URL = 'https://YOUR_SUPABASE_URL.supabase.co';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const SUPABASE_URL = 'https://pirqnvlrhwdpgusyflhm.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_Q6RFoqpqPO2FSHfr_SGmgw_XGwTuCtA';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // --- Clean Slate Data Setup ---
@@ -1177,8 +1250,10 @@
       localStorage.setItem('roadtrip_requests_v2', JSON.stringify(requestsList));
     }
 
-    // --- State Variables ---
+    // --- State Variables & Admin Configuration ---
     const markerStore = {};
+    let isAdminMode = sessionStorage.getItem('justduckit_admin') === 'true';
+    let clickedCoords = null;
 
     // --- Initialize Leaflet Map (Optimized for smooth mobile touch) ---
     const map = L.map('map', {
@@ -1198,6 +1273,87 @@
 
     // Leaflet layer group to handle dynamic pins
     const pinsLayerGroup = L.layerGroup().addTo(map);
+
+    // --- Map Click Handler (Reverse Geocoding & Coordinates Pre-fill) ---
+    function onMapClick(e) {
+      const { lat, lng } = e.latlng;
+      clickedCoords = { lat, lng };
+
+      const buttonText = isAdminMode ? 'Add Official Stop Here 👑' : 'Suggest a Stop Here 💡';
+      
+      const popupContent = `
+        <div style="padding: 0.25rem; font-family: var(--font-body); text-align: center;">
+          <p style="font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-muted);">Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}</p>
+          <button type="button" class="btn btn-primary btn-popup" id="map-suggest-btn">${buttonText}</button>
+        </div>
+      `;
+
+      L.popup()
+        .setLatLng(e.latlng)
+        .setContent(popupContent)
+        .openOn(map);
+
+      // Attach click listener once the popup is rendered
+      setTimeout(() => {
+        const btn = document.getElementById('map-suggest-btn');
+        if (btn) {
+          btn.addEventListener('click', async () => {
+            map.closePopup();
+            
+            // Open/expand bottom sheet on mobile
+            if (window.innerWidth < 768) {
+              bottomSheet.classList.add('bottom-sheet-open');
+              sheetBackdrop.classList.add('show');
+            }
+
+            // Pre-fill coordinates and trigger reverse geocoding
+            const addressInput = document.getElementById('creator-address');
+            const latInput = document.getElementById('creator-lat');
+            const lngInput = document.getElementById('creator-lng');
+            
+            latInput.value = lat;
+            lngInput.value = lng;
+            addressInput.placeholder = 'Resolving location...';
+            addressInput.value = '';
+            
+            try {
+              const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`, {
+                headers: { 'User-Agent': 'JustDuckitRoadtrip/1.0' }
+              });
+              if (response.ok) {
+                const data = await response.json();
+                const addressDetails = data.address;
+                const city = addressDetails.city || addressDetails.town || addressDetails.village || addressDetails.suburb || '';
+                const state = addressDetails.state || '';
+                
+                let resolvedName = '';
+                if (city && state) {
+                  resolvedName = `${city}, ${state}`;
+                } else if (city) {
+                  resolvedName = city;
+                } else {
+                  resolvedName = data.display_name.split(',').slice(0, 2).join(',').trim();
+                }
+                
+                addressInput.value = resolvedName || data.display_name;
+              } else {
+                addressInput.value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+              }
+            } catch (err) {
+              console.error('Error reverse geocoding:', err);
+              addressInput.value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            } finally {
+              addressInput.placeholder = 'e.g. Nashville, TN or Times Square, NYC';
+            }
+            
+            // Focus the title input next
+            document.getElementById('creator-title').focus();
+          });
+        }
+      }, 50);
+    }
+
+    map.on('click', onMapClick);
 
     // --- UI Element Selectors ---
     const pinsContainer = document.getElementById('pins-list-container');
@@ -1269,14 +1425,25 @@
           })
         });
 
-        // Set Popup template content
-        marker.bindPopup(`
+        // Set Popup template content with dynamic admin controls
+        let popupHtml = `
           <div class="popup-detail">
             <span class="popup-tag ${tagClass}">${tagText}</span>
             <h4 class="popup-title">${escapeHTML(pin.title)}</h4>
             <p class="popup-desc">${escapeHTML(pin.desc)}</p>
-          </div>
-        `);
+        `;
+
+        if (isAdminMode) {
+          popupHtml += `<div class="popup-admin-actions">`;
+          if (!isOfficial) {
+            popupHtml += `<button type="button" class="btn btn-primary btn-popup btn-approve-popup" data-pin-id="${pin.id}" data-local-index="${index}">Approve Stop</button>`;
+          }
+          popupHtml += `<button type="button" class="btn btn-popup btn-delete btn-delete-popup" data-pin-id="${pin.id}" data-local-index="${index}">Delete</button>`;
+          popupHtml += `</div>`;
+        }
+
+        popupHtml += `</div>`;
+        marker.bindPopup(popupHtml);
 
         marker.addTo(pinsLayerGroup);
         markerStore[markerKey] = marker;
@@ -1290,7 +1457,7 @@
       const officialPins = pinsList.filter(pin => pin.is_official === true || pin.is_official === 'true');
 
       if (officialPins.length === 0) {
-        pinsContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem; border: 1px dashed rgba(255,255,255,0.05); border-radius:12px;">No official pins added yet. Enter an address in the form with your admin key to add stops!</p>';
+        pinsContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem; border: 1px dashed rgba(255,255,255,0.05); border-radius:12px;">No official pins added yet. Enter an address in the form to add stops!</p>';
         return;
       }
 
@@ -1310,14 +1477,41 @@
         const emoji = pin.emoji || '📍';
         const addressText = pin.address || 'Custom Coordinates';
 
+        let adminActionsHtml = '<span class="pin-chevron">➔</span>';
+        if (isAdminMode) {
+          adminActionsHtml = `
+            <button type="button" class="btn-delete-item" data-pin-id="${pin.id}" data-local-index="${originalIndex}" title="Delete stop">
+              🗑️
+            </button>
+          `;
+        }
+
         item.innerHTML = `
           <div style="font-size: 1.6rem; margin-right: 0.75rem; flex-shrink: 0; user-select: none;">${escapeHTML(emoji)}</div>
           <div class="pin-text">
             <h4>${escapeHTML(pin.title)}</h4>
             <p>${escapeHTML(addressText)}</p>
           </div>
-          <span class="pin-chevron">➔</span>
+          ${adminActionsHtml}
         `;
+
+        if (isAdminMode) {
+          const delBtn = item.querySelector('.btn-delete-item');
+          if (delBtn) {
+            delBtn.addEventListener('click', async (e) => {
+              e.stopPropagation(); // Prevent focusing map
+              const pinId = delBtn.getAttribute('data-pin-id');
+              const idx = parseInt(delBtn.getAttribute('data-local-index'));
+              if (confirm('Are you sure you want to remove this location?')) {
+                const success = await dbDeletePin(pinId, idx);
+                if (success) {
+                  await loadPinsFromSupabase();
+                }
+              }
+            });
+          }
+        }
+
         pinsContainer.appendChild(item);
       });
     }
@@ -1359,6 +1553,15 @@
         const addressText = pin.address || 'Custom Coordinates';
         const descPreview = pin.desc && pin.desc.length > 50 ? pin.desc.substring(0, 50) + '...' : (pin.desc || '');
 
+        let adminActionsHtml = '<span class="pin-chevron">➔</span>';
+        if (isAdminMode) {
+          adminActionsHtml = `
+            <button type="button" class="btn-delete-item" data-pin-id="${pin.id}" data-local-index="${originalIndex}" title="Delete suggestion">
+              🗑️
+            </button>
+          `;
+        }
+
         item.innerHTML = `
           <div style="font-size: 1.6rem; margin-right: 0.75rem; flex-shrink: 0; user-select: none;">${escapeHTML(emoji)}</div>
           <div class="pin-text">
@@ -1366,8 +1569,26 @@
             <p style="margin-bottom: 0.15rem;">${escapeHTML(addressText)}</p>
             <p style="font-size: 0.75rem; color: var(--text-muted); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(descPreview)}</p>
           </div>
-          <span class="pin-chevron">➔</span>
+          ${adminActionsHtml}
         `;
+
+        if (isAdminMode) {
+          const delBtn = item.querySelector('.btn-delete-item');
+          if (delBtn) {
+            delBtn.addEventListener('click', async (e) => {
+              e.stopPropagation(); // Prevent focusing map
+              const pinId = delBtn.getAttribute('data-pin-id');
+              const idx = parseInt(delBtn.getAttribute('data-local-index'));
+              if (confirm('Are you sure you want to remove this suggestion?')) {
+                const success = await dbDeletePin(pinId, idx);
+                if (success) {
+                  await loadPinsFromSupabase();
+                }
+              }
+            });
+          }
+        }
+
         suggestionsContainer.appendChild(item);
       });
     }
@@ -1433,6 +1654,42 @@
       }, 2000);
     }
 
+    // --- Leaflet Popup Open Event Listener (For Admin Action Button Clicks) ---
+    map.on('popupopen', (e) => {
+      const popupNode = e.popup.getElement();
+      if (!popupNode) return;
+      
+      const approveBtn = popupNode.querySelector('.btn-approve-popup');
+      if (approveBtn) {
+        approveBtn.addEventListener('click', async () => {
+          const pinId = approveBtn.getAttribute('data-pin-id');
+          const localIndex = parseInt(approveBtn.getAttribute('data-local-index'));
+          
+          map.closePopup();
+          const success = await dbApprovePin(pinId, localIndex);
+          if (success) {
+            await loadPinsFromSupabase();
+          }
+        });
+      }
+
+      const deleteBtn = popupNode.querySelector('.btn-delete-popup');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+          const pinId = deleteBtn.getAttribute('data-pin-id');
+          const localIndex = parseInt(deleteBtn.getAttribute('data-local-index'));
+          
+          if (confirm('Are you sure you want to remove this location?')) {
+            map.closePopup();
+            const success = await dbDeletePin(pinId, localIndex);
+            if (success) {
+              await loadPinsFromSupabase();
+            }
+          }
+        });
+      }
+    });
+
     // Escape HTML helpers to prevent XSS injection
     function escapeHTML(str) {
       return str.replace(/[&<>'"]/g, 
@@ -1448,8 +1705,7 @@
 
     // --- Load pins from Supabase ---
     async function loadPinsFromSupabase() {
-      // If credentials are still placeholders, skip Supabase fetch and load from localStorage
-      if (SUPABASE_URL.includes('YOUR_SUPABASE_URL') || SUPABASE_ANON_KEY.includes('YOUR_SUPABASE_ANON_KEY')) {
+      if (isSupabasePlaceholder()) {
         console.warn('Supabase URL/Key are default placeholders. Falling back to local storage.');
         pinsList = JSON.parse(localStorage.getItem('roadtrip_pins_v2')) || [];
         renderMapMarkers();
@@ -1467,14 +1723,12 @@
         if (error) throw error;
         
         pinsList = data || [];
-        // Sync to localStorage as local cache
         localStorage.setItem('roadtrip_pins_v2', JSON.stringify(pinsList));
         renderMapMarkers();
         renderSidebarPins();
         renderCommunitySuggestions();
       } catch (err) {
         console.error('Error fetching pins from Supabase:', err);
-        // Fallback to local storage if supabase fails
         pinsList = JSON.parse(localStorage.getItem('roadtrip_pins_v2')) || [];
         renderMapMarkers();
         renderSidebarPins();
@@ -1482,9 +1736,128 @@
       }
     }
 
+    // --- Unified Data Layer (Supabase + LocalStorage Fallback) ---
+    function isSupabasePlaceholder() {
+      return SUPABASE_URL.includes('YOUR_SUPABASE_URL') || 
+             SUPABASE_ANON_KEY.includes('YOUR_SUPABASE_ANON_KEY') ||
+             SUPABASE_URL === '' || 
+             SUPABASE_ANON_KEY === '';
+    }
+
+    async function dbAddPin(newPinPayload) {
+      if (!isSupabasePlaceholder()) {
+        const { error } = await supabaseClient
+          .from('roadtrip_pins')
+          .insert([newPinPayload]);
+        if (error) {
+          console.error('Supabase insert error:', error);
+          alert('Failed to save to cloud database: ' + error.message);
+          throw error;
+        } else {
+          showToastAlert(newPinPayload.is_official ? 'Official pin saved to cloud! 🦆' : 'Viewer suggestion saved to cloud! 📣');
+        }
+      } else {
+        const localPin = { 
+          ...newPinPayload, 
+          id: 'local-' + Date.now(), 
+          created_at: new Date().toISOString() 
+        };
+        pinsList.push(localPin);
+        localStorage.setItem('roadtrip_pins_v2', JSON.stringify(pinsList));
+        showToastAlert(newPinPayload.is_official ? 'Official pin saved locally! 🦆' : 'Viewer suggestion saved locally! 📣');
+      }
+    }
+
+    async function dbApprovePin(pinId, localIndex) {
+      if (!isSupabasePlaceholder() && !String(pinId).startsWith('local-')) {
+        const { error } = await supabaseClient
+          .from('roadtrip_pins')
+          .update({ is_official: true })
+          .eq('id', pinId);
+        if (error) {
+          console.error('Supabase update error:', error);
+          alert('Failed to update cloud database: ' + error.message);
+          return false;
+        }
+      }
+      
+      if (pinsList[localIndex]) {
+        pinsList[localIndex].is_official = true;
+        localStorage.setItem('roadtrip_pins_v2', JSON.stringify(pinsList));
+        showToastAlert('Stop approved and added to route! 👑');
+        return true;
+      }
+      return false;
+    }
+
+    async function dbDeletePin(pinId, localIndex) {
+      if (!isSupabasePlaceholder() && !String(pinId).startsWith('local-')) {
+        const { error } = await supabaseClient
+          .from('roadtrip_pins')
+          .delete()
+          .eq('id', pinId);
+        if (error) {
+          console.error('Supabase delete error:', error);
+          alert('Failed to delete from cloud database: ' + error.message);
+          return false;
+        }
+      }
+      
+      pinsList.splice(localIndex, 1);
+      localStorage.setItem('roadtrip_pins_v2', JSON.stringify(pinsList));
+      showToastAlert('Location removed! 🗑️');
+      return true;
+    }
+
+    // --- Admin Mode UI Management ---
+    const adminLoginBtn = document.getElementById('admin-login-btn');
+    const adminBadgeContainer = document.getElementById('admin-badge-container');
+    const creatorKeyGroup = document.getElementById('creator-key-group');
+    const creatorDeckTitle = document.querySelector('#creator-deck-card .card-title');
+    const creatorDeckDesc = document.querySelector('#creator-deck-card .card-desc');
+
+    function updateAdminUI() {
+      if (isAdminMode) {
+        adminLoginBtn.textContent = 'Admin Logout';
+        adminBadgeContainer.innerHTML = `<span class="admin-badge">👑 Admin Mode</span>`;
+        if (creatorKeyGroup) creatorKeyGroup.style.display = 'none';
+        if (creatorDeckTitle) creatorDeckTitle.innerHTML = 'Creator Control Deck 👑';
+        if (creatorDeckDesc) creatorDeckDesc.textContent = 'Add a visited location or planned stop directly to the official route.';
+      } else {
+        adminLoginBtn.textContent = 'Admin Login';
+        adminBadgeContainer.innerHTML = '';
+        if (creatorKeyGroup) creatorKeyGroup.style.display = 'flex';
+        if (creatorDeckTitle) creatorDeckTitle.innerHTML = 'Suggest a Stop 💡';
+        if (creatorDeckDesc) creatorDeckDesc.textContent = 'Suggest a cool spot, meetup, or road warning for the crew!';
+      }
+      
+      renderMapMarkers();
+      renderSidebarPins();
+      renderCommunitySuggestions();
+    }
+
+    adminLoginBtn.addEventListener('click', () => {
+      if (isAdminMode) {
+        isAdminMode = false;
+        sessionStorage.removeItem('justduckit_admin');
+        showToastAlert('Logged out of Admin Mode');
+        updateAdminUI();
+      } else {
+        const pass = prompt('Enter Admin Passcode:');
+        if (pass === 'Duckit2026') {
+          isAdminMode = true;
+          sessionStorage.setItem('justduckit_admin', 'true');
+          showToastAlert('Logged in as Admin! 👑');
+          updateAdminUI();
+        } else if (pass !== null) {
+          alert('Incorrect passcode.');
+        }
+      }
+    });
+
     // --- Event Listeners & Interactions ---
 
-    // 1. Creator Control Deck Form Submission with Nominatim Geocoding & Supabase Insert
+    // 1. Location Deck Form Submission
     creatorForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -1495,38 +1868,45 @@
       const passwordInput = document.getElementById('creator-key');
       const password = passwordInput ? passwordInput.value.trim() : '';
 
+      const latVal = document.getElementById('creator-lat').value;
+      const lngVal = document.getElementById('creator-lng').value;
+
       if (!address || !title || !desc) return;
 
       const submitBtn = creatorForm.querySelector('button[type="submit"]');
       const originalBtnText = submitBtn.textContent;
-      submitBtn.textContent = 'Searching Address...';
       submitBtn.disabled = true;
 
       try {
-        const encodedAddress = encodeURIComponent(address);
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1`;
+        let lat, lng;
         
-        const response = await fetch(url, {
-          headers: {
-            'User-Agent': 'JustDuckitRoadtrip/1.0'
+        if (latVal && lngVal) {
+          lat = parseFloat(latVal);
+          lng = parseFloat(lngVal);
+        } else {
+          submitBtn.textContent = 'Searching Address...';
+          const encodedAddress = encodeURIComponent(address);
+          const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1`;
+          
+          const response = await fetch(url, {
+            headers: {
+              'User-Agent': 'JustDuckitRoadtrip/1.0'
+            }
+          });
+          
+          if (!response.ok) throw new Error('Network error during geocoding');
+          
+          const data = await response.json();
+          if (data.length === 0) {
+            alert('Address not found! Try typing just the City and State.');
+            return;
           }
-        });
-        
-        if (!response.ok) {
-          throw new Error('Network error during geocoding');
+          
+          lat = parseFloat(data[0].lat);
+          lng = parseFloat(data[0].lon);
         }
-        
-        const data = await response.json();
-        
-        if (data.length === 0) {
-          alert('Address not found! Try typing just the City and State.');
-          return;
-        }
-        
-        const lat = parseFloat(data[0].lat);
-        const lng = parseFloat(data[0].lon);
 
-        const isOfficial = (password === 'Duckit2026');
+        const isOfficial = isAdminMode || (password === 'Duckit2026');
         const newPinPayload = {
           lat,
           lng,
@@ -1537,48 +1917,23 @@
           is_official: isOfficial
         };
 
-        // Try inserting into Supabase
-        if (!SUPABASE_URL.includes('YOUR_SUPABASE_URL') && !SUPABASE_ANON_KEY.includes('YOUR_SUPABASE_ANON_KEY')) {
-          submitBtn.textContent = 'Saving Stop...';
-          const { error } = await supabaseClient
-            .from('roadtrip_pins')
-            .insert([newPinPayload]);
+        submitBtn.textContent = 'Saving Stop...';
+        await dbAddPin(newPinPayload);
 
-          if (error) {
-            console.error('Supabase insert error:', error);
-            alert('Failed to save to cloud database: ' + error.message);
-          } else {
-            showToastAlert(isOfficial ? 'Official pin saved to cloud! 🦆' : 'Viewer suggestion saved to cloud! 📣');
-          }
-        } else {
-          // Fallback simulation when keys are default placeholders
-          console.warn('Using placeholder Supabase config. Simulating local save.');
-          pinsList.push({ ...newPinPayload, id: 'local-' + Date.now(), created_at: new Date().toISOString() });
-          localStorage.setItem('roadtrip_pins_v2', JSON.stringify(pinsList));
-          showToastAlert(isOfficial ? 'Official pin simulated locally! 🦆' : 'Viewer suggestion simulated locally! 📣');
-        }
+        creatorForm.reset();
+        document.getElementById('creator-lat').value = '';
+        document.getElementById('creator-lng').value = '';
 
-        // Reload data from backend (or locally if simulated)
         await loadPinsFromSupabase();
-
-        // Close bottom drawer on mobile before fly-to
         closeBottomSheet();
 
-        // Find the newly created pin in the updated list and focus it
         const newIndex = pinsList.findIndex(p => p.lat === lat && p.lng === lng);
         const markerKey = newIndex !== -1 ? `pin-${newIndex}` : `pin-${pinsList.length - 1}`;
         focusLocation([lat, lng], 8, markerKey);
 
-        // Reset Form fields
-        creatorAddressInput.value = '';
-        creatorTitleInput.value = '';
-        creatorDescInput.value = '';
-        creatorEmojiInput.value = '📍';
-        if (passwordInput) passwordInput.value = '';
-
       } catch (err) {
         console.error(err);
-        alert('An error occurred while searching for the address. Please check your connection and try again.');
+        alert('An error occurred. Please check your connection and try again.');
       } finally {
         submitBtn.textContent = originalBtnText;
         submitBtn.disabled = false;
@@ -1662,6 +2017,7 @@
     });
 
     // --- On Application Startup ---
+    updateAdminUI(); // Sets up initial UI state based on session
     loadPinsFromSupabase();
     renderRequests();
   </script>
